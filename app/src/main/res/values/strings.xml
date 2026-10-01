@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Synergy One</string>
+
+    <string name="login_title">Synergy One</string>
+    <string name="login_subtitle">Entre para acompanhar sua operação.</string>
+    <string name="login_welcome">Bem-vindo de volta</string>
+    <string name="login_access_heading">Acesse sua conta</string>
+    <string name="login_brand_mark_description">Marca Synergy One</string>
+    <string name="login_username_label">Usuário ou e-mail</string>
+    <string name="login_password_label">Senha</string>
+    <string name="login_password_show">Mostrar senha</string>
+    <string name="login_password_hide">Ocultar senha</string>
+    <string name="login_button">Entrar</string>
+    <string name="login_forgot_password">Esqueci minha senha</string>
+    <string name="login_recovery_unavailable">A recuperação de senha será habilitada com o serviço de autenticação.</string>
+    <string name="login_security_notice">Ambiente seguro e exclusivo para usuários autorizados.</string>
+    <string name="login_error_blank_fields">Informe usuário e senha.</string>
+    <string name="login_error_backend_pending">Integração com o backend ainda não configurada. Veja docs/API_CONTRACTS.md.</string>
+    <string name="login_error_network">Falha de conexão. Verifique sua internet e tente novamente.</string>
+
+    <string name="team_home_title">Área da Equipe</string>
+    <string name="team_home_placeholder">Em construção — aguardando definição das funcionalidades da equipe.</string>
+
+    <string name="client_home_title">Área do Cliente</string>
+    <string name="client_home_placeholder">Em construção — aguardando definição das funcionalidades do cliente.</string>
+</resources>

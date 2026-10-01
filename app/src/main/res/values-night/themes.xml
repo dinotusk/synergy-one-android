@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.SynergyOne" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/synergy_background_dark</item>
+        <item name="android:statusBarColor">@color/synergy_background_dark</item>
+    </style>
+</resources>

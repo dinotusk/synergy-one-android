@@ -1,0 +1,7 @@
+<resources>
+    <!-- Tema base aplicado antes do Compose assumir a UI (splash/background da janela). -->
+    <style name="Theme.SynergyOne" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/synergy_background_light</item>
+        <item name="android:statusBarColor">@color/synergy_primary</item>
+    </style>
+</resources>

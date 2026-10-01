@@ -1,0 +1,5 @@
+<resources>
+    <color name="synergy_primary">#1B5E7A</color>
+    <color name="synergy_background_light">#FFFFFF</color>
+    <color name="synergy_background_dark">#121212</color>
+</resources>

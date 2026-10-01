@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Nenhuma credencial ou token deve ser incluído em backups/transferência de dispositivo. -->
+    </cloud-backup>
+</data-extraction-rules>
