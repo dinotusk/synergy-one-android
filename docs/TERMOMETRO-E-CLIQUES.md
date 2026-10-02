@@ -47,3 +47,30 @@ Trabalhe no projeto Android local existente. Antes de editar, confira git status
 10. Não faça merge nem push automático nesta etapa; apresente as alterações para revisão.
 
 Esta especificação não define contrato HTTP do Termômetro. O backend ainda precisa fornecer esse contrato e as permissões de avaliação/publicação.
+
+## Jornada do lead até a venda — requisito aprovado em 02/10/2026
+
+**Status: planejado, ainda não implementado.** Mapear a jornada completa na web e no Android, conectando aquisição, atendimento, oportunidade, venda e eventual ativação do cliente.
+
+### Etapas e histórico
+- Fluxo de referência para validar com a operação: origem/captura → primeiro contato → qualificação → proposta → negociação → venda ganha ou perdida → ativação, quando aplicável.
+- Reaproveitar e mapear os estados reais dos serviços existentes antes de definir novos estados. Esta sequência é uma referência de produto, não um contrato de API nem uma alteração das etapas atuais.
+- Cada lead deve ter identificador estável, empresa vinculada quando conhecida, canal/fonte, campanha e link de origem quando disponíveis, responsável, data da captura e etapa atual.
+- Linha do tempo com eventos, mudanças de etapa, contatos, propostas e resultado final; registrar quando aconteceu e quem ou qual integração registrou.
+- Preservar origem e histórico ao converter o lead em cliente. Relacionar lead, oportunidade, contrato/venda e empresa por IDs; não por nomes.
+- Distinguir empresa dona do lead de empresa criada/vinculada na conversão. Não trocar o vínculo de propriedade para representar uma venda.
+- Registrar valor e data da venda quando disponíveis, motivo de perda e tempo em cada etapa. Venda ganha não significa pagamento recebido; recebimentos pertencem ao financeiro.
+- Prever leads já convertidos, duplicados, reabertura e correções auditadas. Uma pessoa pode ter mais de uma oportunidade; evitar contar cada evento como um novo lead ou nova venda.
+
+### Visão e indicadores
+- Exibir funil e linha do tempo do lead, com filtros por empresa, origem, responsável e período.
+- Mostrar leads recebidos, qualificados, propostas, vendas ganhas/perdidas, conversão e tempo até a venda; receita vendida apenas quando houver valores reais.
+- Definir denominadores e distinguir conversão da mesma coorte de leads de vendas ocorridas no período, para não gerar taxas enganosas.
+- Relacionar ao Termômetro metas de aquisição e conversão, resultados e feedback, com evolução temporal baseada em histórico real.
+- Equipe vê dados conforme suas permissões. Cliente vê apenas os leads e informações autorizadas da própria empresa; notas internas não devem ser publicadas automaticamente.
+
+### Dependências e limites
+- Confirmar os eventos e identificadores disponíveis nas fontes, no n8n e no backend, incluindo a identificação de uma venda concluída.
+- Cliques agregados por país não identificam pessoas. Só atribuir clique/campanha a um lead quando existir vínculo técnico verificável e coleta adequada; caso contrário, apresentar "Origem não identificada".
+- Documentar a regra de atribuição (primeiro/último contato), retenção, minimização de dados e deduplicação antes da integração.
+- Backend deve definir os contratos, autorização e auditoria. Esta atualização só registra requisitos: não cria endpoints, migrações nem telas.
