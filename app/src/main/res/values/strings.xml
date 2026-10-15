@@ -6,7 +6,7 @@
     <string name="login_welcome">Bem-vindo de volta</string>
     <string name="login_access_heading">Acesse sua conta</string>
     <string name="login_brand_mark_description">Marca Synergy One</string>
-    <string name="login_username_label">Usuário ou e-mail</string>
+    <string name="login_username_label">E-mail</string>
     <string name="login_password_label">Senha</string>
     <string name="login_password_show">Mostrar senha</string>
     <string name="login_password_hide">Ocultar senha</string>

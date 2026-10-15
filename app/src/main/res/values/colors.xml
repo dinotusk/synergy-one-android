@@ -1,5 +1,6 @@
 <resources>
-    <color name="synergy_primary">#1B5E7A</color>
-    <color name="synergy_background_light">#FFFFFF</color>
-    <color name="synergy_background_dark">#121212</color>
+    <color name="synergy_primary">#5D3FD3</color>
+    <color name="synergy_background_light">#F9F9FC</color>
+    <color name="synergy_background_dark">#040915</color>
+    <color name="synergy_splash_icon_bg">#EEEAFC</color>
 </resources>

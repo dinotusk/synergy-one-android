@@ -1,33 +1,49 @@
 package br.com.synergyone.android.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import br.com.synergyone.android.ui.theme.HeroFrom
+import br.com.synergyone.android.ui.theme.HeroGlowCobalt
+import br.com.synergyone.android.ui.theme.HeroGlowViolet
+import br.com.synergyone.android.ui.theme.HeroTo
+import br.com.synergyone.android.ui.theme.HeroVia
+import br.com.synergyone.android.ui.theme.synergy
 
 data class DashboardTab(
     val label: String,
@@ -35,34 +51,91 @@ data class DashboardTab(
     val contentDescription: String,
 )
 
+/** Cartão padrão do site: fundo de superfície, borda fina e raio generoso. */
+@Composable
+fun SynergyCard(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        shadowElevation = 1.dp,
+        content = content,
+    )
+}
+
+/** Cabeçalho de seção do site: sobretítulo em violeta + título em Sora. */
+@Composable
+fun SectionTitle(title: String, modifier: Modifier = Modifier, eyebrow: String? = null) {
+    Column(modifier = modifier) {
+        if (eyebrow != null) {
+            Text(
+                eyebrow.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.synergy.primaryText,
+            )
+        }
+        Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+enum class BadgeTone { Success, Warning, Danger, Info, Neutral, Brand }
+
+/** Selo em pílula, como o StatusBadge do site (fundo 15% + borda 30% da cor do estado). */
+@Composable
+fun StatusBadge(text: String, tone: BadgeTone, modifier: Modifier = Modifier) {
+    val color = when (tone) {
+        BadgeTone.Success -> MaterialTheme.synergy.success
+        BadgeTone.Warning -> MaterialTheme.synergy.warning
+        BadgeTone.Danger -> MaterialTheme.synergy.danger
+        BadgeTone.Info -> MaterialTheme.synergy.info
+        BadgeTone.Brand -> MaterialTheme.synergy.primaryText
+        BadgeTone.Neutral -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = color,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier
+            .clip(CircleShape)
+            .background(color.copy(alpha = 0.15f))
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    )
+}
+
 @Composable
 fun DashboardBottomBar(
     tabs: List<DashboardTab>,
     selectedIndex: Int,
     onSelected: (Int) -> Unit,
 ) {
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-        tabs.forEachIndexed { index, tab ->
-            NavigationBarItem(
-                selected = selectedIndex == index,
-                onClick = { onSelected(index) },
-                icon = { Icon(tab.icon, contentDescription = tab.contentDescription) },
-                label = { Text(tab.label) },
-            )
+    Column {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        // Com fonte muito ampliada os rótulos não cabem: a barra mostra só os ícones (cada um com
+        // descrição para leitores de tela), em vez de quebrar ou cortar palavras.
+        val largeFont = LocalConfiguration.current.fontScale > 1.3f
+        NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
+            tabs.forEachIndexed { index, tab ->
+                NavigationBarItem(
+                    selected = selectedIndex == index,
+                    onClick = { onSelected(index) },
+                    icon = { Icon(tab.icon, contentDescription = tab.contentDescription) },
+                    label = if (largeFont) null else ({ Text(tab.label, style = MaterialTheme.typography.labelMedium, maxLines = 1, softWrap = false) }),
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.synergy.primaryText,
+                        selectedTextColor = MaterialTheme.synergy.primaryText,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                )
+            }
         }
-    }
-}
-
-@Composable
-fun DashboardHeader(title: String, subtitle: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(bottom = 20.dp)) {
-        Text(text = title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp),
-        )
     }
 }
 
@@ -72,89 +145,20 @@ fun EmptyDashboardState(
     detail: String,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
             Text(
-                text = detail,
+                detail,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 6.dp),
             )
-        }
-    }
-}
-
-@Composable
-fun MetricCard(label: String, value: String, detail: String, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
-            Text(detail, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(top = 4.dp))
-        }
-    }
-}
-
-@Composable
-fun ProgressCard(title: String, progress: Float, period: String, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
-        Column(modifier = Modifier.padding(18.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                Text(period, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            androidx.compose.material3.LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(8.dp),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            )
-            Text(
-                text = "${(progress * 100).toInt()}% concluído",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
-    }
-}
-
-@Composable
-fun TrendCard(title: String, period: String, unit: String, values: List<Float>, modifier: Modifier = Modifier) {
-    val trendColor = MaterialTheme.colorScheme.primary
-    Card(modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
-        Column(modifier = Modifier.padding(18.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                Text(period, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(112.dp)
-                    .padding(top = 16.dp)
-                    .semantics { contentDescription = "$title, unidade: $unit, período: $period" },
-            ) {
-                if (values.size < 2) return@Canvas
-                val maximum = values.maxOrNull()?.coerceAtLeast(1f) ?: 1f
-                val path = Path()
-                values.forEachIndexed { index, value ->
-                    val x = size.width * index / (values.lastIndex.toFloat())
-                    val y = size.height - (value / maximum * size.height)
-                    if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
-                }
-                drawPath(path, color = trendColor, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 6f))
-            }
-            Text("Unidade: $unit", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
