@@ -67,6 +67,7 @@ Tudo abaixo foi no moto g53, build **debug**, com **dados de demonstração** (n
 - Observação: o indicador da barra de navegação e o esqueleto pulsante não foram medidos em escala 0.
 
 ### 5. Dados antigos × atualização
+- **[visto]** Puxar para atualizar no Termômetro da equipe: o indicador aparece e os dados continuam na tela.
 - **Atualização manual:** puxar para atualizar em Termômetro (equipe e cliente), Empresas, Leads, ficha da empresa e detalhe do
   lead. A atualização é em segundo plano: o dado atual fica na tela; se falhar, ele permanece e aparece "Não foi possível
   atualizar… Tentar".
