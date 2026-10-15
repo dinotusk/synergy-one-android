@@ -27,9 +27,7 @@ import br.com.synergyone.android.data.api.AvaliacaoPublicadaDto
 import br.com.synergyone.android.data.api.TermometroClienteDto
 import br.com.synergyone.android.data.auth.model.AuthenticatedUser
 import br.com.synergyone.android.data.lead.LeadRepository
-import br.com.synergyone.android.data.lead.captadosDesde
 import br.com.synergyone.android.data.termometro.TermometroRepository
-import java.time.LocalDate
 import br.com.synergyone.android.ui.common.InfoNote
 import br.com.synergyone.android.ui.common.LoadState
 import br.com.synergyone.android.ui.common.LoadStateContent
@@ -102,7 +100,7 @@ fun TermometroClienteScreen(
             if (modoLeads) SemAvaliacaoNote(d, livre != null) else PublicadoContent(d, selecionada, onSelect = { avaliacaoId = it; livre = null })
         }
         if (modoLeads) {
-            LeadsDoPeriodo(leadRepository, empresaEfetiva, intervalo, onSignIn)
+            IndicadoresAtuais(leadRepository, empresaEfetiva, intervalo, onSignIn)
         }
     }
 
@@ -128,27 +126,8 @@ private fun SemAvaliacaoNote(dados: TermometroClienteDto, periodoLivre: Boolean)
     if (periodoLivre && dados.atual != null) return
     InfoNote(
         "Ainda sem avaliação publicada",
-        "A equipe ainda não publicou a avaliação do Termômetro desta empresa. Os indicadores abaixo já vêm dos seus leads e podem ser vistos em qualquer período.",
+        "A equipe ainda não publicou a avaliação do Termômetro desta empresa. Abaixo estão os indicadores atuais dos seus leads, que podem ser vistos em qualquer período.",
     )
-}
-
-/** Indicadores calculados com `GET /leads` (única fonte de resultados do cliente fora da avaliação publicada). */
-@Composable
-private fun LeadsDoPeriodo(repository: LeadRepository, empresaId: Long?, intervalo: PeriodRange, onSignIn: () -> Unit) {
-    val loader = rememberLoader("termometro-leads-$empresaId-${intervalo.desde}-${intervalo.ate}") { repository.captadosDesde(empresaId, intervalo.desde) }
-    val state by loader.state.collectAsState()
-    LoadStateContent(state, onRetry = loader::reload, onSignIn = onSignIn) { d ->
-        val ind = indicadoresDeLeads(d.leads, LocalDate.parse(intervalo.desde), LocalDate.parse(intervalo.ate))
-        val periodo = formatPeriod(intervalo.desde, intervalo.ate)
-        ResultadosSection(ind.resultados, periodo, somenteLeads = true, origens = ind.origens)
-        if (!d.completo) {
-            InfoNote("Lista parcial", "Há ${d.total} leads desde ${formatDate(intervalo.desde)}; os números consideram só os ${d.leads.size} mais recentes. Escolha um período menor.")
-        }
-        InfoNote(
-            "Como são calculados",
-            "Contam os leads captados no período, pela etapa em que estão hoje. Valores recebidos, acessos e cliques ainda não chegam ao app.",
-        )
-    }
 }
 
 /** Empresa e período lado a lado; em fonte ampliada, um sobre o outro. */
@@ -180,7 +159,7 @@ private fun PublicadoContent(dados: TermometroClienteDto, selecionada: Avaliacao
     val periodo = formatPeriod(selecionada.periodoInicio, selecionada.periodoFim)
     val resultados = selecionada.resultados
     if (resultados != null) {
-        ResultadosSection(resultados, periodo)
+        ResultadosSection(resultados, periodo, titulo = "Números congelados na publicação")
         resultados.aplicacao?.let { MetasSection("Metas — ${it.nome}", it.metas) }
     } else {
         InfoNote("Resultados indisponíveis", "Esta avaliação não guardou os números do período.")

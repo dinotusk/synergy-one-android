@@ -197,7 +197,7 @@ private fun PainelContent(
     if (dados.truncado) {
         InfoNote("Números parciais", "O período tem leads demais: os números mostram só uma parte. Reduza o período.")
     }
-    dados.resultados?.let { ResultadosSection(it, periodo) }
+    dados.resultados?.let { ResultadosSection(it, periodo, titulo = "Resultados ao vivo do período") }
     dados.aplicacoes.forEach { MetasSection("Metas — ${it.nome}" + (it.metodoNome?.let { m -> " ($m)" } ?: ""), it.metas) }
 
     AvaliacoesCard(dados.avaliacoes, podeEditar, podePublicar, onNova, onEditar, onCorrigir, onPublicar)

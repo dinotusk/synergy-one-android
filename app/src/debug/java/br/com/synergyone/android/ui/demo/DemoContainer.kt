@@ -155,7 +155,7 @@ class DemoJornada(private val canEdit: Boolean) : JornadaRepository {
     }
 }
 
-class DemoContainer(context: android.content.Context, private val demoUser: AuthenticatedUser, private val vazio: Boolean = false, private val semAvaliacao: Boolean = false) : AppContainer {
+class DemoContainer(context: android.content.Context, private val demoUser: AuthenticatedUser, private val vazio: Boolean = false, private val semAvaliacao: Boolean = false, private val acimaDoLimite: Boolean = false) : AppContainer {
     override val themeSettings = br.com.synergyone.android.data.settings.ThemeSettings(context)
     override val jornadaRepository: JornadaRepository = DemoJornada(demoUser.canWrite)
     override val authRepository = object : AuthRepository {
@@ -194,6 +194,6 @@ class DemoContainer(context: android.content.Context, private val demoUser: Auth
     override val leadRepository = object : LeadRepository {
         override fun cached(id: Long): LeadDto? = DemoData.leads.firstOrNull { it.id == id }
         override suspend fun pagina(empresaId: Long?, etapa: String?, cursor: String?, desde: String?, limite: Int) =
-            demo(LeadsPage(DemoData.leads.filter { !vazio }.filter { desde == null || (it.capturadoEm ?: "").take(10) >= desde }.filter { etapa == null || it.etapa == etapa }, DemoData.leads.size, null))
+            demo(LeadsPage(DemoData.leads.filter { !vazio }.filter { desde == null || (it.capturadoEm ?: "").take(10) >= desde }.filter { etapa == null || it.etapa == etapa }, DemoData.leads.size, if (acimaDoLimite) "c" else null).let { if (acimaDoLimite) it.copy(total = 5200) else it })
     }
 }

@@ -20,6 +20,9 @@ interface LeadRepository {
     ): ApiResult<LeadsPage>
 }
 
+/** Teto de páginas (100 leads cada): 1.000 registros. Acima disso o app não calcula; o backend precisa agregar. */
+const val MAX_PAGINAS = 10
+
 /** Leads captados a partir de [desde] (`AAAA-MM-DD`, Brasília). [completo] = false quando o teto de páginas cortou a lista. */
 data class LeadsDesde(val leads: List<LeadDto>, val total: Int, val completo: Boolean)
 
@@ -27,12 +30,12 @@ data class LeadsDesde(val leads: List<LeadDto>, val total: Int, val completo: Bo
  * Percorre as páginas de `GET /leads?desde=` (limite máximo de 100 por página) até [maxPaginas].
  * Nunca monta cursor: só repassa o `proximoCursor` recebido.
  */
-suspend fun LeadRepository.captadosDesde(empresaId: Long?, desde: String, maxPaginas: Int = 10): ApiResult<LeadsDesde> {
+suspend fun LeadRepository.captadosDesde(empresaId: Long?, desde: String?, etapa: String? = null, maxPaginas: Int = MAX_PAGINAS): ApiResult<LeadsDesde> {
     val todos = mutableListOf<LeadDto>()
     var cursor: String? = null
     var total = 0
     repeat(maxPaginas) {
-        when (val r = pagina(empresaId = empresaId, cursor = cursor, desde = desde, limite = 100)) {
+        when (val r = pagina(empresaId = empresaId, etapa = etapa, cursor = cursor, desde = desde, limite = 100)) {
             is ApiResult.Error -> return r
             is ApiResult.Success -> {
                 todos += r.data.leads

@@ -130,3 +130,50 @@ Requisitos e decisões que dependem do **usuário** (não do Yuri) e do backend,
 
 Para **acessos** (visitas ao site) pede-se o mesmo formato (`acessos.serie`, `porPais`), com `definicao` própria
 (visita × sessão × visitante único).
+
+## Indicadores atuais do cliente (sem avaliação publicada): definições
+
+O cliente não tem rota de resultados ao vivo (`/equipe/resultados` é só da equipe). Por isso, fora de uma avaliação
+publicada, o app calcula os indicadores a partir de `GET /api/app/v1/leads`. Funciona para **qualquer empresa
+autorizada** do usuário (sem regra por empresa); o período é independente da avaliação.
+
+### Campos de `/leads` usados
+
+| Campo | Uso |
+|---|---|
+| `capturadoEm` (instante ISO) | base dos leads captados no período, funil, origem e gráfico de captação |
+| `etapa` | classificação atual (`ganho`, `perdido`, em andamento) |
+| `vendaFechadaEm` (`AAAA-MM-DD`) | **data real do fechamento**: base das vendas do período |
+| `vendaCentavos` | valor vendido (soma só o que existe; vendas sem valor são avisadas) |
+| `origem`, `canal` | origem real; "legado" nunca é exibido como canal; sem origem = "Origem não informada" |
+
+### Duas bases, nunca misturadas (mesma regra de `calcularResultados` do site)
+
+1. **Leads captados no período** (por `capturadoEm`): leads, já ganhos, perdidos, em andamento, funil, origem,
+   gráfico de captação e **conversão = ganhos desses leads ÷ leads captados no período**. O tempo até a venda
+   também é dos ganhos dessa coorte (captura → fechamento).
+2. **Vendas fechadas no período** (por `vendaFechadaEm`): quantidade, valor vendido e gráficos por data de
+   fechamento, **inclusive de leads captados antes do período**. Para não perder essas vendas, o app lê todos os
+   ganhos (`etapa=ganho`, sem `desde`) e filtra pela data de fechamento. Ganho sem `vendaFechadaEm` não entra em
+   nenhum período: aparece em aviso.
+
+A conversão **não** é "vendas do período ÷ leads do período".
+
+Diferença conhecida em relação ao site: o funil do site é acumulado (`etapaMaxima`), que `/leads` não entrega;
+no app o funil mostra a **etapa atual** de cada lead, com legenda explícita.
+
+Fuso: `America/Sao_Paulo` em todas as datas (captura convertida do instante UTC; fechamento já é data).
+
+### Limite de leitura e agregação no backend
+
+O app lê no máximo **10 páginas de 100 (1.000 registros)** por consulta. Se a lista não couber, **nenhum total,
+percentual ou gráfico é exibido** para aquele bloco, só o aviso da limitação (nunca números parciais como
+completos). **Dependência do backend:** para períodos longos e carteiras grandes, é preciso uma rota agregada para o
+cliente (ex.: `GET /api/app/v1/resultados?empresaId&desde&ate`, no formato de `/equipe/resultados`, e com `etapaMaxima`
+no funil), calculada no servidor com a mesma regra acima.
+
+### Títulos na interface
+
+- Equipe: **Resultados ao vivo do período** (calculado pelo servidor).
+- Cliente com avaliação: **Números congelados na publicação** (do momento da publicação).
+- Cliente sem avaliação ou em período livre: **Indicadores atuais do período**, com aviso "calculados agora, não congelados".

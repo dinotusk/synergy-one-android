@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import br.com.synergyone.android.data.api.FunilDto
 import br.com.synergyone.android.data.api.MetaDto
 import br.com.synergyone.android.data.api.ResultadosDto
 import br.com.synergyone.android.ui.common.InfoNote
@@ -45,12 +46,10 @@ fun ResultadosSection(
     resultados: ResultadosDto,
     periodo: String,
     modifier: Modifier = Modifier,
-    /** Resultados calculados dos leads (cliente sem avaliação): sem "recebido", que a API do cliente não entrega. */
-    somenteLeads: Boolean = false,
-    origens: List<Pair<String, Int>> = emptyList(),
+    titulo: String = "Resultados",
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionTitle("Resultados", eyebrow = periodo)
+        SectionTitle(titulo, eyebrow = periodo)
 
         // Período sem nenhum lead nem venda: uma mensagem só, em vez de uma grade de zeros.
         if (resultados.totalLeads == 0 && resultados.ganhos == 0 && resultados.perdidos == 0 && resultados.vendidoCentavos == 0L) {
@@ -60,16 +59,15 @@ fun ResultadosSection(
         }
 
         HighlightsCard(resultados)
-        if (!somenteLeads) FinanceCard(resultados) else if (resultados.vendidoCentavos > 0) VendidoCard(resultados)
+        FinanceCard(resultados)
         SecondaryStatsCard(resultados)
 
-        if (resultados.funil.isNotEmpty()) FunilCard(resultados)
-        if (origens.isNotEmpty()) OrigemCard(origens, resultados.totalLeads)
+        if (resultados.funil.isNotEmpty()) FunilCard(resultados.funil)
 
         // Sem pelo menos dois pontos não há evolução: o cartão mostra o aviso honesto.
         EvolutionCard(
             title = "Leads captados",
-            unit = "leads por ${if (resultados.evolucao.size >= 2) "intervalo" else "período"}",
+            unit = "leads por ${if (resultados.evolucao.size >= 2) "intervalo" else "período"}, pela data de captura",
             period = periodo,
             points = resultados.evolucao.map { ChartPoint(it.rotulo, it.captados.toFloat()) },
         )
@@ -77,8 +75,8 @@ fun ResultadosSection(
         // Vendas e valor vendido usam a mesma série `evolucao` já entregue pela API; só aparecem com valor real.
         if (resultados.evolucao.size >= 2 && resultados.evolucao.any { it.ganhos > 0 }) {
             EvolutionCard(
-                title = "Vendas ganhas",
-                unit = "vendas por intervalo",
+                title = "Vendas fechadas",
+                unit = "vendas por intervalo, pela data de fechamento",
                 period = periodo,
                 points = resultados.evolucao.map { ChartPoint(it.rotulo, it.ganhos.toFloat()) },
             )
@@ -86,7 +84,7 @@ fun ResultadosSection(
         if (resultados.evolucao.size >= 2 && resultados.evolucao.any { it.vendidoCentavos > 0 }) {
             EvolutionCard(
                 title = "Valor vendido",
-                unit = "reais vendidos por intervalo",
+                unit = "reais por intervalo, pela data de fechamento",
                 period = periodo,
                 points = resultados.evolucao.map { ChartPoint(it.rotulo, it.vendidoCentavos / 100f) },
                 format = { formatMoney((it * 100).toLong()) },
@@ -101,10 +99,10 @@ fun ResultadosSection(
 
 /** Fontes ampliadas (acessibilidade): empilha em vez de espremer três colunas. */
 @Composable
-private fun isLargeFont() = LocalConfiguration.current.fontScale > 1.3f
+internal fun isLargeFont() = LocalConfiguration.current.fontScale > 1.3f
 
 @Composable
-private fun Stat(label: String, value: String, modifier: Modifier = Modifier, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
+internal fun Stat(label: String, value: String, modifier: Modifier = Modifier, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(value, style = MaterialTheme.typography.headlineSmall, color = valueColor, maxLines = 1)
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -165,16 +163,7 @@ private fun FinanceCard(r: ResultadosDto) {
 }
 
 @Composable
-private fun VendidoCard(r: ResultadosDto) {
-    SynergyCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(18.dp)) {
-            Stat("Vendido (leads ganhos)", formatMoney(r.vendidoCentavos), valueColor = MaterialTheme.colorScheme.primary)
-        }
-    }
-}
-
-@Composable
-private fun OrigemCard(origens: List<Pair<String, Int>>, total: Int) {
+internal fun OrigemCard(origens: List<Pair<String, Int>>, total: Int, semOrigem: Int) {
     val maximo = origens.maxOf { it.second }.coerceAtLeast(1)
     SynergyCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -192,6 +181,9 @@ private fun OrigemCard(origens: List<Pair<String, Int>>, total: Int) {
                         Box(modifier = Modifier.fillMaxHeight().fillMaxWidth(qtd.toFloat() / maximo).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
                     }
                 }
+            }
+            if (semOrigem > 0) {
+                Text("Origem não informada: $semOrigem", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -220,16 +212,16 @@ private fun SecondaryStatsCard(r: ResultadosDto) {
 }
 
 @Composable
-private fun FunilCard(resultados: ResultadosDto) {
-    val maximo = resultados.funil.maxOf { it.total }.coerceAtLeast(1)
-    val base = resultados.funil.firstOrNull()?.total?.takeIf { it > 0 }
+internal fun FunilCard(funil: List<FunilDto>) {
+    val maximo = funil.maxOf { it.total }.coerceAtLeast(1)
+    val base = funil.firstOrNull()?.total?.takeIf { it > 0 }
     SynergyCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text("Funil de vendas", style = MaterialTheme.typography.titleMedium)
                 Text("leads por etapa • % sobre o total captado", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            resultados.funil.forEach { etapa ->
+            funil.forEach { etapa ->
                 Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(etapa.rotulo ?: etapaLabel(etapa.etapa), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))

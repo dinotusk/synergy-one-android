@@ -34,7 +34,7 @@ class DemoActivity : ComponentActivity() {
         enableEdgeToEdge()
         val isClient = intent.getStringExtra("view") == "client"
         val user = if (isClient) DemoData.clientUser else DemoData.teamUser(intent.getStringExtra("role") ?: "gestao")
-        val container = DemoContainer(this, user, vazio = intent.getStringExtra("state") == "empty", semAvaliacao = intent.getStringExtra("state") == "noeval")
+        val container = DemoContainer(this, user, vazio = intent.getStringExtra("state") == "empty", semAvaliacao = intent.getStringExtra("state") in listOf("noeval", "limit"), acimaDoLimite = intent.getStringExtra("state") == "limit")
         setContent {
             val mode by container.themeSettings.mode.collectAsState()
             SynergyOneTheme(darkTheme = mode == br.com.synergyone.android.data.settings.ThemeMode.Dark) {
