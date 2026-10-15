@@ -163,6 +163,7 @@ fun LeadDetailScreen(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun LeadCabecalho(lead: LeadDto) {
     val context = LocalContext.current
     SynergyCard(modifier = Modifier.fillMaxWidth()) {
@@ -177,7 +178,7 @@ private fun LeadCabecalho(lead: LeadDto) {
             lead.mensagem?.takeIf { it.isNotBlank() }?.let { Text("“$it”", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             lead.email?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
             lead.telefone?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 lead.telefone?.takeIf { it.isNotBlank() }?.let { tel ->
                     OutlinedButton(onClick = { ContactActions.dial(context, tel) }) { Icon(Icons.Filled.Call, null, Modifier.padding(end = 6.dp)); Text("Ligar") }
                     OutlinedButton(onClick = { ContactActions.whatsapp(context, tel) }) { Icon(Icons.Filled.Chat, null, Modifier.padding(end = 6.dp)); Text("WhatsApp") }

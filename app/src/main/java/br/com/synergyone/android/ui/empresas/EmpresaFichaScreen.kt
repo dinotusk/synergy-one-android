@@ -176,7 +176,7 @@ fun EmpresaFichaScreen(
 @Composable
 private fun Cabecalho(e: Empresa) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        e.status?.let { StatusBadge(it.replaceFirstChar { c -> c.uppercase() }, statusTone(it)) }
+        e.status?.let { StatusBadge(statusLabel(it).replaceFirstChar { c -> c.uppercase() }, statusTone(it)) }
         e.plano?.let { StatusBadge("Plano $it", BadgeTone.Neutral) }
     }
 }

@@ -64,7 +64,7 @@ private fun EmpresaCard(empresa: Empresa, onClick: ((Long) -> Unit)?) {
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
-                empresa.status?.let { StatusBadge(it, statusTone(it)) }
+                empresa.status?.let { StatusBadge(statusLabel(it), statusTone(it)) }
             }
             empresa.plano?.let {
                 Text(
@@ -91,4 +91,10 @@ internal fun statusTone(status: String) = when (status.lowercase()) {
     "atencao", "atenção", "pendente" -> BadgeTone.Warning
     "inativo", "inativa", "cancelado", "gargalo" -> BadgeTone.Danger
     else -> BadgeTone.Neutral
+}
+
+/** Texto livre do servidor com a acentuação correta; valores desconhecidos aparecem como vieram. */
+internal fun statusLabel(status: String) = when (status.lowercase()) {
+    "atencao" -> "atenção"
+    else -> status
 }
