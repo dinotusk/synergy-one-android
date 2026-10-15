@@ -41,7 +41,14 @@ import br.com.synergyone.android.ui.components.SynergyCard
  * há dado: sem histórico não se fabrica gráfico, e cliques ausentes viram aviso, não zero.
  */
 @Composable
-fun ResultadosSection(resultados: ResultadosDto, periodo: String, modifier: Modifier = Modifier) {
+fun ResultadosSection(
+    resultados: ResultadosDto,
+    periodo: String,
+    modifier: Modifier = Modifier,
+    /** Resultados calculados dos leads (cliente sem avaliação): sem "recebido", que a API do cliente não entrega. */
+    somenteLeads: Boolean = false,
+    origens: List<Pair<String, Int>> = emptyList(),
+) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionTitle("Resultados", eyebrow = periodo)
 
@@ -53,10 +60,11 @@ fun ResultadosSection(resultados: ResultadosDto, periodo: String, modifier: Modi
         }
 
         HighlightsCard(resultados)
-        FinanceCard(resultados)
+        if (!somenteLeads) FinanceCard(resultados) else if (resultados.vendidoCentavos > 0) VendidoCard(resultados)
         SecondaryStatsCard(resultados)
 
         if (resultados.funil.isNotEmpty()) FunilCard(resultados)
+        if (origens.isNotEmpty()) OrigemCard(origens, resultados.totalLeads)
 
         // Sem pelo menos dois pontos não há evolução: o cartão mostra o aviso honesto.
         EvolutionCard(
@@ -65,6 +73,25 @@ fun ResultadosSection(resultados: ResultadosDto, periodo: String, modifier: Modi
             period = periodo,
             points = resultados.evolucao.map { ChartPoint(it.rotulo, it.captados.toFloat()) },
         )
+
+        // Vendas e valor vendido usam a mesma série `evolucao` já entregue pela API; só aparecem com valor real.
+        if (resultados.evolucao.size >= 2 && resultados.evolucao.any { it.ganhos > 0 }) {
+            EvolutionCard(
+                title = "Vendas ganhas",
+                unit = "vendas por intervalo",
+                period = periodo,
+                points = resultados.evolucao.map { ChartPoint(it.rotulo, it.ganhos.toFloat()) },
+            )
+        }
+        if (resultados.evolucao.size >= 2 && resultados.evolucao.any { it.vendidoCentavos > 0 }) {
+            EvolutionCard(
+                title = "Valor vendido",
+                unit = "reais vendidos por intervalo",
+                period = periodo,
+                points = resultados.evolucao.map { ChartPoint(it.rotulo, it.vendidoCentavos / 100f) },
+                format = { formatMoney((it * 100).toLong()) },
+            )
+        }
 
         resultados.cliques?.takeIf { !it.disponivel }?.let {
             InfoNote("Cliques ainda indisponíveis", it.pendencia ?: "Esta métrica ainda não é coletada.")
@@ -132,6 +159,39 @@ private fun FinanceCard(r: ResultadosDto) {
                 )
             } else {
                 Text("Sem vendas no período.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun VendidoCard(r: ResultadosDto) {
+    SynergyCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Stat("Vendido (leads ganhos)", formatMoney(r.vendidoCentavos), valueColor = MaterialTheme.colorScheme.primary)
+        }
+    }
+}
+
+@Composable
+private fun OrigemCard(origens: List<Pair<String, Int>>, total: Int) {
+    val maximo = origens.maxOf { it.second }.coerceAtLeast(1)
+    SynergyCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Origem dos leads", style = MaterialTheme.typography.titleMedium)
+                Text("origem registrada em cada lead • $total no período", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            origens.take(6).forEach { (nome, qtd) ->
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(nome, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                        Text(qtd.toString(), style = MaterialTheme.typography.labelLarge)
+                    }
+                    Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer)) {
+                        Box(modifier = Modifier.fillMaxHeight().fillMaxWidth(qtd.toFloat() / maximo).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
+                    }
+                }
             }
         }
     }

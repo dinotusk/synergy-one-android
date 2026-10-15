@@ -26,7 +26,10 @@ import androidx.compose.ui.unit.dp
 import br.com.synergyone.android.data.api.AvaliacaoPublicadaDto
 import br.com.synergyone.android.data.api.TermometroClienteDto
 import br.com.synergyone.android.data.auth.model.AuthenticatedUser
+import br.com.synergyone.android.data.lead.LeadRepository
+import br.com.synergyone.android.data.lead.captadosDesde
 import br.com.synergyone.android.data.termometro.TermometroRepository
+import java.time.LocalDate
 import br.com.synergyone.android.ui.common.InfoNote
 import br.com.synergyone.android.ui.common.LoadState
 import br.com.synergyone.android.ui.common.LoadStateContent
@@ -46,6 +49,7 @@ import br.com.synergyone.android.ui.components.SynergyCard
 @Composable
 fun TermometroClienteScreen(
     repository: TermometroRepository,
+    leadRepository: LeadRepository,
     user: AuthenticatedUser,
     onAccount: () -> Unit,
     onSignIn: () -> Unit,
@@ -56,6 +60,8 @@ fun TermometroClienteScreen(
 ) {
     var empresaId by rememberSaveable { mutableStateOf<Long?>(fixedEmpresaId) }
     var avaliacaoId by rememberSaveable(empresaId) { mutableStateOf<Long?>(null) }
+    // Período livre (indicadores dos leads); `null` = segue a avaliação publicada, se houver.
+    var livre by rememberSaveable(empresaId, stateSaver = PeriodRangeSaver) { mutableStateOf<PeriodRange?>(null) }
     var sheet by rememberSaveable { mutableStateOf(false) }
 
     val loader = rememberLoader("termometro-publicado-$empresaId") { repository.publicado(empresaId) }
@@ -63,7 +69,12 @@ fun TermometroClienteScreen(
     val dados = (state as? LoadState.Loaded)?.data
 
     val avaliacoes = dados?.let { d -> (listOfNotNull(d.atual) + d.historico).distinctBy { it.id } }.orEmpty()
-    val selecionada = avaliacoes.firstOrNull { it.id == avaliacaoId } ?: dados?.atual
+    val escolhida = avaliacoes.firstOrNull { it.id == avaliacaoId }
+    // Sem avaliação publicada (ou período livre escolhido) os indicadores vêm dos leads, nunca ficam escondidos.
+    val modoLeads = livre != null || (escolhida == null && dados != null && dados.atual == null) || (state is LoadState.Error)
+    val selecionada = if (livre != null) null else escolhida ?: dados?.atual
+    val intervalo = livre ?: periodPresets()[1]
+    val empresaEfetiva = empresaId ?: dados?.empresa?.id ?: user.empresas.firstOrNull()?.id
 
     Column(
         modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
@@ -74,25 +85,69 @@ fun TermometroClienteScreen(
         SelectorsRow {
             EmpresaSelector(
                 empresas = user.empresas.filter { fixedEmpresaId == null || it.id == fixedEmpresaId }.map { EmpresaOption(it.id, it.nome) },
-                selecionadaId = empresaId ?: dados?.empresa?.id,
+                selecionadaId = empresaEfetiva,
                 onSelect = { empresaId = it },
                 modifier = it,
             )
             PeriodSelectorChip(
-                label = selecionada?.let { formatPeriodShort(it.periodoInicio, it.periodoFim) } ?: "Sem avaliações",
-                enabled = avaliacoes.isNotEmpty(),
+                label = if (modoLeads) formatPeriodShort(intervalo.desde, intervalo.ate)
+                else selecionada?.let { formatPeriodShort(it.periodoInicio, it.periodoFim) } ?: "Período",
+                enabled = true,
                 modifier = it,
                 onClick = { sheet = true },
             )
         }
 
         LoadStateContent(state, onRetry = loader::reload, onSignIn = onSignIn) { d ->
-            PublicadoContent(d, selecionada, onSelect = { avaliacaoId = it })
+            if (modoLeads) SemAvaliacaoNote(d, livre != null) else PublicadoContent(d, selecionada, onSelect = { avaliacaoId = it; livre = null })
+        }
+        if (modoLeads) {
+            LeadsDoPeriodo(leadRepository, empresaEfetiva, intervalo, onSignIn)
         }
     }
 
-    if (sheet && avaliacoes.isNotEmpty()) {
-        AvaliacaoPeriodSheet(avaliacoes, selecionada?.id, onSelect = { avaliacaoId = it; sheet = false }, onDismiss = { sheet = false })
+    if (sheet) {
+        ClientePeriodSheet(
+            avaliacoes = avaliacoes,
+            selectedAvaliacaoId = selecionada?.id,
+            selectedRange = if (modoLeads) intervalo else null,
+            onSelectAvaliacao = { avaliacaoId = it; livre = null; sheet = false },
+            onSelectRange = { livre = it; sheet = false },
+            onDismiss = { sheet = false },
+        )
+    }
+}
+
+private val PeriodRangeSaver = androidx.compose.runtime.saveable.Saver<PeriodRange?, List<String>>(
+    save = { it?.let { r -> listOf(r.label, r.desde, r.ate) } ?: emptyList() },
+    restore = { if (it.size == 3) PeriodRange(it[0], it[1], it[2]) else null },
+)
+
+@Composable
+private fun SemAvaliacaoNote(dados: TermometroClienteDto, periodoLivre: Boolean) {
+    if (periodoLivre && dados.atual != null) return
+    InfoNote(
+        "Ainda sem avaliação publicada",
+        "A equipe ainda não publicou a avaliação do Termômetro desta empresa. Os indicadores abaixo já vêm dos seus leads e podem ser vistos em qualquer período.",
+    )
+}
+
+/** Indicadores calculados com `GET /leads` (única fonte de resultados do cliente fora da avaliação publicada). */
+@Composable
+private fun LeadsDoPeriodo(repository: LeadRepository, empresaId: Long?, intervalo: PeriodRange, onSignIn: () -> Unit) {
+    val loader = rememberLoader("termometro-leads-$empresaId-${intervalo.desde}-${intervalo.ate}") { repository.captadosDesde(empresaId, intervalo.desde) }
+    val state by loader.state.collectAsState()
+    LoadStateContent(state, onRetry = loader::reload, onSignIn = onSignIn) { d ->
+        val ind = indicadoresDeLeads(d.leads, LocalDate.parse(intervalo.desde), LocalDate.parse(intervalo.ate))
+        val periodo = formatPeriod(intervalo.desde, intervalo.ate)
+        ResultadosSection(ind.resultados, periodo, somenteLeads = true, origens = ind.origens)
+        if (!d.completo) {
+            InfoNote("Lista parcial", "Há ${d.total} leads desde ${formatDate(intervalo.desde)}; os números consideram só os ${d.leads.size} mais recentes. Escolha um período menor.")
+        }
+        InfoNote(
+            "Como são calculados",
+            "Contam os leads captados no período, pela etapa em que estão hoje. Valores recebidos, acessos e cliques ainda não chegam ao app.",
+        )
     }
 }
 

@@ -58,7 +58,7 @@
 
 | Recurso | Perfil/permissão | API existente | Android hoje | Pendente |
 |---|---|---|---|---|
-| Termômetro do cliente (publicado) | cliente / qualquer perfil | `GET /termometro` | Completo: empresa, período (histórico), escala, metas, resultados | Cliques: o backend ainda não coleta (aviso honesto) |
+| Termômetro do cliente (publicado) | cliente / qualquer perfil | `GET /termometro`, `GET /leads?desde=` | **Completo no que a API permite.** Avaliação publicada (escala, metas, resultados congelados) **ou**, sem avaliação ou em período livre (7/30/90 dias, mês, personalizado), indicadores calculados dos leads: leads, ganhos, conversão, vendido, tempo até a venda, funil, origem e gráficos de leads, vendas e valor vendido. Sem "recebido" (a API do cliente não entrega) | Cliques: o backend ainda não coleta (aviso honesto). Contrato proposto em `TERMOMETRO-E-CLIQUES.md` |
 | Painel do Termômetro (equipe) | leitura `membro`; grava `escrita`; publica `admin`/`gestao` | `GET /equipe/termometro`, `POST/PUT …/avaliacoes`, `POST …/publicar` | **Completo.** Empresa, período (presets e personalizado), resultados ao vivo, metas, avaliações; criar/editar rascunho, corrigir publicada (novo rascunho) e publicar com confirmação | Validar com contas reais |
 | Visão geral (`/`): central operacional (clientes, leads abertos, projetos, prioridades) | `membro` | **Nenhuma** | Item "Na web" em Mais (a aba Termômetro cobre a parte de avaliações) | **Backend** |
 | Meu dia (`/meu-dia`) | pessoal | **Nenhuma** | Não existe | **Backend** |

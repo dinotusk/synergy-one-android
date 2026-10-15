@@ -126,3 +126,49 @@ fun AvaliacaoPeriodSheet(
         }
     }
 }
+
+/**
+ * Cliente: período **independente da avaliação** (prontos ou personalizado, indicadores dos leads) ou
+ * uma avaliação publicada (números congelados na publicação).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ClientePeriodSheet(
+    avaliacoes: List<AvaliacaoPublicadaDto>,
+    selectedAvaliacaoId: Long?,
+    selectedRange: PeriodRange?,
+    onSelectAvaliacao: (Long) -> Unit,
+    onSelectRange: (PeriodRange) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var custom by remember { mutableStateOf(false) }
+    if (custom) {
+        CustomRangeDialog(onConfirm = { onSelectRange(it) }, onDismiss = { custom = false })
+        return
+    }
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(modifier = Modifier.navigationBarsPadding().verticalScroll(rememberScrollState()).padding(bottom = 16.dp)) {
+            Text("Período", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
+            periodPresets().forEach { p ->
+                SheetRow(selected = selectedAvaliacaoId == null && selectedRange?.desde == p.desde && selectedRange.ate == p.ate, onClick = { onSelectRange(p) }) {
+                    Text(p.label, style = MaterialTheme.typography.bodyLarge)
+                    Text(formatPeriod(p.desde, p.ate), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            SheetRow(selected = false, onClick = { custom = true }, leading = { Icon(Icons.Filled.Edit, null, tint = MaterialTheme.colorScheme.primary) }) {
+                Text("Personalizado…", style = MaterialTheme.typography.bodyLarge)
+            }
+            if (avaliacoes.isNotEmpty()) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Text("Avaliações publicadas", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 24.dp, vertical = 10.dp))
+                avaliacoes.forEach { a ->
+                    val c = Classificacao.fromWire(a.classificacao)
+                    SheetRow(selected = a.id == selectedAvaliacaoId, onClick = { onSelectAvaliacao(a.id) }, leading = { ClassificationDot(c) }) {
+                        Text(formatPeriod(a.periodoInicio, a.periodoFim), style = MaterialTheme.typography.bodyLarge)
+                        Text(c.label, style = MaterialTheme.typography.bodySmall, color = c.color())
+                    }
+                }
+            }
+        }
+    }
+}

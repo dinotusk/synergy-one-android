@@ -74,3 +74,59 @@ Esta especificação não define contrato HTTP do Termômetro. O backend ainda p
 - Cliques agregados por país não identificam pessoas. Só atribuir clique/campanha a um lead quando existir vínculo técnico verificável e coleta adequada; caso contrário, apresentar "Origem não identificada".
 - Documentar a regra de atribuição (primeiro/último contato), retenção, minimização de dados e deduplicação antes da integração.
 - Backend deve definir os contratos, autorização e auditoria. Esta atualização só registra requisitos: não cria endpoints, migrações nem telas.
+
+## Acessos e cliques: decisão de arquitetura (atualização de 15/10/2026)
+
+- O site da ForLife está no **Lovable**. A investigação e a integração da coleta de acessos e cliques são do
+  responsável pelo backend/web do Synergy One.
+- O app Android **só consome a API autenticada do Synergy One** (`/api/app/v1`). Não se conecta ao Lovable, ao n8n
+  nem a qualquer outra fonte, e não guarda segredo de nenhuma delas.
+- Enquanto a coleta não existir, `resultados.cliques.disponivel = false` e o app mostra o aviso da `pendencia`,
+  nunca zero.
+
+### Indicadores já exibidos (dados que a API entrega hoje)
+
+| Indicador | Campo da API | Tela |
+|---|---|---|
+| Leads, vendas, conversão | `totalLeads`, `ganhos`, `conversao` | Resultados |
+| Vendido, recebido, % recebido | `vendidoCentavos`, `recebidoCentavos` | Resultados |
+| Tempo até a venda (média, mediana), perdidas, em andamento | `diasAteVenda`, `perdidos`, `emAndamento` | Resultados |
+| Funil por etapa | `funil[]` | Resultados |
+| Evolução de leads captados | `evolucao[].captados` | Gráfico "Leads captados" |
+| Evolução de vendas ganhas | `evolucao[].ganhos` | Gráfico "Vendas ganhas" |
+| Evolução do valor vendido | `evolucao[].vendidoCentavos` | Gráfico "Valor vendido" |
+| Metas × realizado | `aplicacao.metas[]` | Metas |
+
+Gráficos só são desenhados com **dois ou mais pontos** reais; sem isso aparece o aviso, não uma linha inventada.
+
+### Dados que o backend precisa fornecer para os gráficos de acessos e cliques
+
+Proposta de bloco `cliques` em `ResultadosDto` (e no `GET /equipe/termometro`), **sem dados pessoais** (só contagens
+agregadas). O app passa a desenhar assim que `disponivel = true`:
+
+```json
+"cliques": {
+  "disponivel": true,
+  "atualizadoEm": "2026-10-15T12:00:00Z",
+  "fuso": "America/Sao_Paulo",
+  "definicao": "total | unico",
+  "serie": [
+    { "chave": "2026-10-01", "rotulo": "01/10",
+      "instagram": 0, "contato": 0, "site": 0 }
+  ],
+  "porPais": [ { "pais": "BR", "instagram": 0, "contato": 0, "site": 0 } ],
+  "porLink": [ { "linkId": "…", "tipo": "instagram|contato|site", "rotulo": "…", "total": 0 } ]
+}
+```
+
+Requisitos e decisões que dependem do **usuário** (não do Yuri) e do backend, ainda em aberto:
+1. Definição de clique: total ou único (e janela de unicidade) e o fuso do dia.
+2. Deduplicação (robôs, recarga, mesmo visitante) e fonte da coleta no Lovable.
+3. Identificação estável de cada link por empresa (`linkId`) e de qual empresa é cada clique.
+4. Histórico disponível (a partir de quando) e frequência de atualização (`atualizadoEm`).
+5. País desconhecido = "Não informado". Visitas ao site e cliques para o site são métricas **separadas**; não somar.
+6. Permissões: o cliente vê só a própria empresa; equipe conforme o papel. Sem IP nem identificação pessoal.
+7. Atribuir clique a lead só com vínculo técnico verificável; senão "Origem não identificada".
+
+Para **acessos** (visitas ao site) pede-se o mesmo formato (`acessos.serie`, `porPais`), com `definicao` própria
+(visita × sessão × visitante único).

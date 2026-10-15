@@ -36,6 +36,7 @@ fun EvolutionCard(
     period: String,
     points: List<ChartPoint>,
     modifier: Modifier = Modifier,
+    format: (Double) -> String = { formatNumber(it) },
 ) {
     SynergyCard(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -50,7 +51,7 @@ fun EvolutionCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
-                LineChart(points, unit)
+                LineChart(points, unit, format)
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text(points.first().label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
                     Text(points.last().label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -61,21 +62,21 @@ fun EvolutionCard(
 }
 
 @Composable
-private fun LineChart(points: List<ChartPoint>, unit: String) {
+private fun LineChart(points: List<ChartPoint>, unit: String, format: (Double) -> String) {
     val line = MaterialTheme.colorScheme.primary
     val glow = MaterialTheme.synergyGlow()
     val grid = MaterialTheme.colorScheme.outlineVariant
     val max = points.maxOf { it.value }.coerceAtLeast(1f)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Column(modifier = Modifier.height(120.dp), verticalArrangement = Arrangement.SpaceBetween) {
-            Text(formatNumber(max.toDouble()), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(format(max.toDouble()), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("0", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Canvas(
             modifier = Modifier
                 .weight(1f)
                 .height(120.dp)
-                .semantics { contentDescription = "Gráfico de $unit, de ${points.first().label} a ${points.last().label}, máximo ${formatNumber(max.toDouble())}" },
+                .semantics { contentDescription = "Gráfico de $unit, de ${points.first().label} a ${points.last().label}, máximo ${format(max.toDouble())}" },
         ) {
             val path = Path()
             val pad = 4.dp.toPx()

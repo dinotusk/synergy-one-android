@@ -52,7 +52,7 @@ fun ClientHomeScreen(container: AppContainer, user: AuthenticatedUser, nav: AppN
                 "Sua conta ainda não está vinculada a uma empresa. Fale com a Synergy para liberar o acesso.",
                 Modifier.padding(20.dp),
             )
-            tab == 0 -> TermometroClienteScreen(container.termometroRepository, user, onAccount = nav::openPerfil, onSignIn = onLogout)
+            tab == 0 -> TermometroClienteScreen(container.termometroRepository, container.leadRepository, user, onAccount = nav::openPerfil, onSignIn = onLogout)
             tab == 1 -> LeadsScreen(
                 container.leadRepository,
                 userName = user.displayName,

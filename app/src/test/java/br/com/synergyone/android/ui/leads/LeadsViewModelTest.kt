@@ -24,7 +24,7 @@ private class FakeLeads(private val pages: Map<String?, ApiResult<LeadsPage>>) :
     val calls = mutableListOf<Pair<String?, String?>>() // etapa, cursor
     val empresas = mutableListOf<Long?>()
     override fun cached(id: Long): LeadDto? = null
-    override suspend fun pagina(empresaId: Long?, etapa: String?, cursor: String?): ApiResult<LeadsPage> {
+    override suspend fun pagina(empresaId: Long?, etapa: String?, cursor: String?, desde: String?, limite: Int): ApiResult<LeadsPage> {
         calls += etapa to cursor
         empresas += empresaId
         return pages[cursor] ?: ApiResult.Error("sem página")

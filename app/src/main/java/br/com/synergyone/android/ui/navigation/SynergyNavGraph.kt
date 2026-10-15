@@ -127,7 +127,7 @@ fun SynergyNavGraph(
                 if (it.role == UserRole.TEAM) {
                     TermometroEquipeScreen(container.termometroRepository, it, nav::openPerfil, logout, fixedEmpresaId = e.id(), onBack = nav::back)
                 } else {
-                    TermometroClienteScreen(container.termometroRepository, it, nav::openPerfil, logout, fixedEmpresaId = e.id(), onBack = nav::back)
+                    TermometroClienteScreen(container.termometroRepository, container.leadRepository, it, nav::openPerfil, logout, fixedEmpresaId = e.id(), onBack = nav::back)
                 }
             }
         }

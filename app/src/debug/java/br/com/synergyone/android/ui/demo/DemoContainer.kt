@@ -155,7 +155,7 @@ class DemoJornada(private val canEdit: Boolean) : JornadaRepository {
     }
 }
 
-class DemoContainer(context: android.content.Context, private val demoUser: AuthenticatedUser, private val vazio: Boolean = false) : AppContainer {
+class DemoContainer(context: android.content.Context, private val demoUser: AuthenticatedUser, private val vazio: Boolean = false, private val semAvaliacao: Boolean = false) : AppContainer {
     override val themeSettings = br.com.synergyone.android.data.settings.ThemeSettings(context)
     override val jornadaRepository: JornadaRepository = DemoJornada(demoUser.canWrite)
     override val authRepository = object : AuthRepository {
@@ -188,12 +188,12 @@ class DemoContainer(context: android.content.Context, private val demoUser: Auth
             avaliacoes[i] = avaliacoes[i].copy(status = "publicada", publicadaEm = "2026-10-15T14:05:00.000Z")
             return ApiResult.Success(Unit)
         }
-        override suspend fun publicado(empresaId: Long?) = demo(if (vazio) TermometroClienteDto(EmpresaRefDto(3, "ForLife")) else DemoData.publicado)
+        override suspend fun publicado(empresaId: Long?) = demo(if (vazio || semAvaliacao) TermometroClienteDto(EmpresaRefDto(3, "ForLife")) else DemoData.publicado)
         override suspend fun painelEquipe(empresaId: Long?, desde: String?, ate: String?) = demo(if (vazio) DemoData.equipe.copy(avaliacoes = emptyList(), resultados = ResultadosDto(), aplicacoes = emptyList()) else DemoData.equipe.copy(avaliacoes = avaliacoes.toList(), podeEditar = demoUser.canWrite, podePublicar = demoUser.isAdminOrManager))
     }
     override val leadRepository = object : LeadRepository {
         override fun cached(id: Long): LeadDto? = DemoData.leads.firstOrNull { it.id == id }
-        override suspend fun pagina(empresaId: Long?, etapa: String?, cursor: String?) =
-            demo(LeadsPage(DemoData.leads.filter { !vazio }.filter { etapa == null || it.etapa == etapa }, DemoData.leads.size, null))
+        override suspend fun pagina(empresaId: Long?, etapa: String?, cursor: String?, desde: String?, limite: Int) =
+            demo(LeadsPage(DemoData.leads.filter { !vazio }.filter { desde == null || (it.capturadoEm ?: "").take(10) >= desde }.filter { etapa == null || it.etapa == etapa }, DemoData.leads.size, null))
     }
 }
