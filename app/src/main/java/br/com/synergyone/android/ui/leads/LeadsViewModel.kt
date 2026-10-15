@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.synergyone.android.core.result.ApiResult
 import br.com.synergyone.android.data.api.ApiErrors
 import br.com.synergyone.android.data.api.LeadDto
+import br.com.synergyone.android.data.freshness.DataFreshness
 import br.com.synergyone.android.data.lead.LeadRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,11 +25,19 @@ data class LeadsUiState(
     val isLoadingMore: Boolean = false,
     val error: String? = null,
     val sessionExpired: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val refreshFailed: Boolean = false,
 ) {
     val canLoadMore: Boolean get() = nextCursor != null && !isLoading && !isLoadingMore
 }
 
-class LeadsViewModel(private val repository: LeadRepository, initialEmpresaId: Long? = null) : ViewModel() {
+class LeadsViewModel(
+    private val repository: LeadRepository,
+    initialEmpresaId: Long? = null,
+    private val freshness: DataFreshness? = null,
+) : ViewModel() {
+    private var loadedAt = 0L
+    private var loadedVersion = 0L
     private val _state = MutableStateFlow(LeadsUiState(empresaId = initialEmpresaId))
     val state: StateFlow<LeadsUiState> = _state.asStateFlow()
     private var job: Job? = null
@@ -53,9 +62,11 @@ class LeadsViewModel(private val repository: LeadRepository, initialEmpresaId: L
         _state.update { it.copy(isLoading = true, isLoadingMore = false, error = null, sessionExpired = false, leads = emptyList(), nextCursor = null) }
         val etapa = _state.value.etapa
         val empresaId = _state.value.empresaId
+        val version = freshness?.version?.value ?: 0L
         job = viewModelScope.launch {
             when (val r = repository.pagina(empresaId = empresaId, etapa = etapa)) {
                 is ApiResult.Success -> _state.update {
+                    markLoaded(version)
                     it.copy(isLoading = false, leads = r.data.leads, total = r.data.total, nextCursor = r.data.proximoCursor)
                 }
                 is ApiResult.Error -> _state.update {
@@ -63,6 +74,40 @@ class LeadsViewModel(private val repository: LeadRepository, initialEmpresaId: L
                 }
             }
         }
+    }
+
+    /** Atualiza a primeira página em segundo plano: a lista atual fica na tela até a nova chegar. */
+    fun refresh() {
+        val s = _state.value
+        if (s.isLoading || s.isRefreshing) return
+        _state.update { it.copy(isRefreshing = true, refreshFailed = false) }
+        val version = freshness?.version?.value ?: 0L
+        job?.cancel()
+        job = viewModelScope.launch {
+            when (val r = repository.pagina(empresaId = s.empresaId, etapa = s.etapa)) {
+                is ApiResult.Success -> {
+                    markLoaded(version)
+                    _state.update { it.copy(isRefreshing = false, leads = r.data.leads, total = r.data.total, nextCursor = r.data.proximoCursor, error = null) }
+                }
+                is ApiResult.Error -> _state.update {
+                    if (r.code == ApiErrors.SESSION_INVALID) it.copy(isRefreshing = false, error = r.message, sessionExpired = true)
+                    else it.copy(isRefreshing = false, refreshFailed = true)
+                }
+            }
+        }
+    }
+
+    /** Ao reabrir a aba/tela: só atualiza se houve gravação desde a leitura ou passou o TTL. */
+    fun refreshIfStale() {
+        val f = freshness ?: return
+        val s = _state.value
+        if (s.isLoading || s.error != null || s.isRefreshing || s.isLoadingMore) return
+        if (f.isStale(loadedVersion, loadedAt)) refresh()
+    }
+
+    private fun markLoaded(version: Long) {
+        loadedAt = freshness?.now() ?: System.currentTimeMillis()
+        loadedVersion = version
     }
 
     fun loadMore() {
@@ -89,8 +134,8 @@ class LeadsViewModel(private val repository: LeadRepository, initialEmpresaId: L
         }
     }
 
-    class Factory(private val repository: LeadRepository, private val empresaId: Long? = null) : ViewModelProvider.Factory {
+    class Factory(private val repository: LeadRepository, private val empresaId: Long? = null, private val freshness: DataFreshness? = null) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = LeadsViewModel(repository, empresaId) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = LeadsViewModel(repository, empresaId, freshness) as T
     }
 }

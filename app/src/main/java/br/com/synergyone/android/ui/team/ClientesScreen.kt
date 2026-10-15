@@ -44,14 +44,14 @@ fun ClientesScreen(
             }
         }
         if (segment == 0) {
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp)) {
-                EmpresasSection(
-                    repository = container.empresaRepository,
-                    emptyTitle = "Nenhuma empresa",
-                    emptyDetail = "Sua conta ainda não tem empresas visíveis.",
-                    onEmpresaClick = nav::openEmpresa,
-                )
-            }
+            EmpresasSection(
+                repository = container.empresaRepository,
+                emptyTitle = "Nenhuma empresa",
+                emptyDetail = "Sua conta ainda não tem empresas visíveis.",
+                modifier = Modifier.weight(1f),
+                onSignIn = onSignIn,
+                onEmpresaClick = nav::openEmpresa,
+            )
         } else {
             LeadsScreen(
                 repository = container.leadRepository,

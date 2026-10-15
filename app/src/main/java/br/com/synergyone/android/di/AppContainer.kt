@@ -9,6 +9,7 @@ import br.com.synergyone.android.data.api.AppApi
 import br.com.synergyone.android.data.api.AppApiClient
 import br.com.synergyone.android.data.api.OkHttpAppApi
 import br.com.synergyone.android.data.empresa.ApiEmpresaRepository
+import br.com.synergyone.android.data.freshness.DataFreshness
 import br.com.synergyone.android.data.empresa.EmpresaRepository
 import br.com.synergyone.android.data.jornada.ApiJornadaRepository
 import br.com.synergyone.android.data.jornada.JornadaRepository
@@ -28,6 +29,12 @@ interface AppContainer {
     val leadRepository: LeadRepository
     val jornadaRepository: JornadaRepository
     val themeSettings: ThemeSettings
+
+    /** Marca dados lidos como velhos após gravações e decide quando atualizar ao reabrir telas. */
+    val freshness: DataFreshness
+
+    /** Logout, sessão expirada ou troca de conta: descarta tudo o que pertencia à sessão anterior. */
+    fun clearSessionData()
 }
 
 class DefaultAppContainer(private val context: Context) : AppContainer {
@@ -51,11 +58,17 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     // Sem sessão (build sem configuração) o cliente devolve "sessão expirada": nunca inventa dados.
-    private val client: AppApiClient by lazy { AppApiClient(appApi, authRepository) }
+    override val freshness = DataFreshness()
+    private val client: AppApiClient by lazy { AppApiClient(appApi, authRepository, onMutation = freshness::invalidate) }
 
     override val empresaRepository: EmpresaRepository by lazy { ApiEmpresaRepository(client) }
     override val termometroRepository: TermometroRepository by lazy { ApiTermometroRepository(client) }
     override val leadRepository: LeadRepository by lazy { ApiLeadRepository(client) }
     override val jornadaRepository: JornadaRepository by lazy { ApiJornadaRepository(client) }
     override val themeSettings: ThemeSettings by lazy { ThemeSettings(context) }
+
+    override fun clearSessionData() {
+        leadRepository.clear()
+        freshness.invalidate()
+    }
 }

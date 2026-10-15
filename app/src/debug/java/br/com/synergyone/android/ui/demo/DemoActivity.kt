@@ -34,6 +34,8 @@ class DemoActivity : ComponentActivity() {
         enableEdgeToEdge()
         val isClient = intent.getStringExtra("view") == "client"
         val user = if (isClient) DemoData.clientUser else DemoData.teamUser(intent.getStringExtra("role") ?: "gestao")
+        DemoMode.error = intent.getStringExtra("state") == "error"
+        DemoMode.delayMs = if (intent.getStringExtra("state") == "slow") 30_000L else 600L
         val container = DemoContainer(this, user, vazio = intent.getStringExtra("state") == "empty", semAvaliacao = intent.getStringExtra("state") in listOf("noeval", "limit"), acimaDoLimite = intent.getStringExtra("state") == "limit")
         setContent {
             val mode by container.themeSettings.mode.collectAsState()

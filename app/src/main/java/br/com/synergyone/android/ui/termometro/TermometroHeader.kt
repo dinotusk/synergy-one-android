@@ -85,13 +85,15 @@ fun EmpresaSelector(
     modifier: Modifier = Modifier,
     /** Quando informado, a lista ganha a opção "todas" (selecionada = `null`) e o seletor aceita `null`. */
     todasLabel: String? = null,
+    /** Texto enquanto não há nenhuma empresa na lista (carregando ou realmente sem empresa). */
+    vazioLabel: String = "Sem empresa",
 ) {
     var open by remember { mutableStateOf(false) }
     val atual = empresas.firstOrNull { it.id == selecionadaId } ?: if (todasLabel == null) empresas.firstOrNull() else null
     Box(modifier) {
         SelectorChip(
             icon = Icons.Filled.Business,
-            label = atual?.nome ?: todasLabel ?: "Sem empresa",
+            label = atual?.nome ?: todasLabel ?: vazioLabel,
             description = "Empresa",
             enabled = empresas.size > 1,
             modifier = Modifier.fillMaxWidth(),

@@ -25,6 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -45,14 +49,15 @@ fun SkeletonBlock(height: Dp, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .height(height)
             .alpha(pulse)
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainer),
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant),
     )
 }
 
 @Composable
 fun LoadingView(modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    // Sem recuo horizontal próprio: a tela que hospeda já o aplica (antes o esqueleto ficava mais estreito que o conteúdo).
+    Column(modifier = modifier.padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         SkeletonBlock(120.dp)
         SkeletonBlock(88.dp)
         SkeletonBlock(160.dp)
@@ -76,6 +81,7 @@ fun ErrorView(
         Text(
             if (sessionExpired) "Sessão encerrada" else "Não foi possível carregar",
             style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
         )
         Text(
             message,

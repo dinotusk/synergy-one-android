@@ -28,7 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
+import br.com.synergyone.android.ui.common.LocalDataFreshness
+import br.com.synergyone.android.ui.common.PullRefreshBox
 import br.com.synergyone.android.data.api.LeadDto
 import br.com.synergyone.android.data.lead.LeadRepository
 import br.com.synergyone.android.ui.common.ErrorView
@@ -66,11 +71,14 @@ fun LeadsScreen(
     /** Quando informado (equipe), o cartão do lead abre o detalhe. Cliente: somente leitura. */
     onLeadClick: ((Long) -> Unit)? = null,
 ) {
-    val viewModel: LeadsViewModel = viewModel(key = "leads-$fixedEmpresaId", factory = LeadsViewModel.Factory(repository, fixedEmpresaId))
+    val viewModel: LeadsViewModel = viewModel(key = "leads-$fixedEmpresaId", factory = LeadsViewModel.Factory(repository, fixedEmpresaId, LocalDataFreshness.current))
     val state by viewModel.state.collectAsState()
+    LaunchedEffect(viewModel) { viewModel.refreshIfStale() }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshIfStale() }
 
+    PullRefreshBox(refreshing = state.isRefreshing, failed = state.refreshFailed, onRefresh = viewModel::refresh, modifier = modifier.fillMaxSize()) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -129,6 +137,7 @@ fun LeadsScreen(
                 }
             }
         }
+    }
     }
 }
 

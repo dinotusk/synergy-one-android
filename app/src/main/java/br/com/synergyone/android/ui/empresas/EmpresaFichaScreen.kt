@@ -34,6 +34,7 @@ import br.com.synergyone.android.ui.common.formatPercent
 import br.com.synergyone.android.ui.common.formatPeriod
 import br.com.synergyone.android.ui.common.moduloLabel
 import br.com.synergyone.android.ui.common.origemLabel
+import br.com.synergyone.android.ui.common.PullRefresh
 import br.com.synergyone.android.ui.common.rememberLoader
 import br.com.synergyone.android.ui.components.AppTopBar
 import br.com.synergyone.android.ui.components.BadgeTone
@@ -116,60 +117,62 @@ fun EmpresaFichaScreen(
     val empresa = (empresas as? LoadState.Loaded)?.data?.firstOrNull { it.id == empresaId }
     val nome = empresa?.nome ?: user.empresas.firstOrNull { it.id == empresaId }?.nome ?: "Empresa"
 
-    Column(
-        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        AppTopBar(title = nome, userName = user.displayName, onAccount = nav::openPerfil, onBack = nav::back)
-        empresa?.let { Cabecalho(it) }
+    PullRefresh(listOf(empresaLoader, resumoLoader, leadsLoader), modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            AppTopBar(title = nome, userName = user.displayName, onAccount = nav::openPerfil, onBack = nav::back)
+            empresa?.let { Cabecalho(it) }
 
-        // Termômetro + resultados
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            SectionTitle("Termômetro e resultados", eyebrow = "Avaliação")
-            LoadStateContent(resumo, onRetry = resumoLoader::reload, onSignIn = onSignIn) { r ->
-                SynergyCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        ClassificationBadge(r.classificacao)
-                        ClassificationScale(r.classificacao)
-                        r.periodo?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                        r.justificativa?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyMedium, maxLines = 3) }
-                        if (r.classificacao == Classificacao.NaoAvaliado) {
-                            Text("Ainda não há avaliação publicada.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        r.resultados?.takeIf { it.totalLeads > 0 || it.ganhos > 0 }?.let { ResumoNumeros(it, r.resultadosRotulo) }
-                        OutlinedButton(onClick = { nav.openTermometroDaEmpresa(empresaId) }, modifier = Modifier.fillMaxWidth()) {
-                            Text("Abrir Termômetro completo")
-                        }
-                    }
-                }
-            }
-        }
-
-        // Leads
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            SectionTitle("Leads", eyebrow = "Captação")
-            LoadStateContent(leads, onRetry = leadsLoader::reload, onSignIn = onSignIn) { page ->
-                if (page.leads.isEmpty()) {
-                    EmptyDashboardState("Nenhum lead ainda", "Quando um lead for captado para esta empresa, ele aparece aqui.")
-                } else {
+            // Termômetro + resultados
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SectionTitle("Termômetro e resultados", eyebrow = "Avaliação")
+                LoadStateContent(resumo, onRetry = resumoLoader::reload, onSignIn = onSignIn) { r ->
                     SynergyCard(modifier = Modifier.fillMaxWidth()) {
-                        Column {
-                            page.leads.take(5).forEachIndexed { i, lead ->
-                                LeadLinha(lead, onClick = if (isTeam) ({ nav.openLead(lead.id) }) else null)
-                                if (i != minOf(page.leads.size, 5) - 1) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            ClassificationBadge(r.classificacao)
+                            ClassificationScale(r.classificacao)
+                            r.periodo?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            r.justificativa?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyMedium, maxLines = 3) }
+                            if (r.classificacao == Classificacao.NaoAvaliado) {
+                                Text("Ainda não há avaliação publicada.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            r.resultados?.takeIf { it.totalLeads > 0 || it.ganhos > 0 }?.let { ResumoNumeros(it, r.resultadosRotulo) }
+                            OutlinedButton(onClick = { nav.openTermometroDaEmpresa(empresaId) }, modifier = Modifier.fillMaxWidth()) {
+                                Text("Abrir Termômetro completo")
                             }
                         }
                     }
-                    OutlinedButton(onClick = { nav.openLeadsDaEmpresa(empresaId) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Ver todos os leads (${page.total})")
+                }
+            }
+
+            // Leads
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SectionTitle("Leads", eyebrow = "Captação")
+                LoadStateContent(leads, onRetry = leadsLoader::reload, onSignIn = onSignIn) { page ->
+                    if (page.leads.isEmpty()) {
+                        EmptyDashboardState("Nenhum lead ainda", "Quando um lead for captado para esta empresa, ele aparece aqui.")
+                    } else {
+                        SynergyCard(modifier = Modifier.fillMaxWidth()) {
+                            Column {
+                                page.leads.take(5).forEachIndexed { i, lead ->
+                                    LeadLinha(lead, onClick = if (isTeam) ({ nav.openLead(lead.id) }) else null)
+                                    if (i != minOf(page.leads.size, 5) - 1) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                }
+                            }
+                        }
+                        OutlinedButton(onClick = { nav.openLeadsDaEmpresa(empresaId) }, modifier = Modifier.fillMaxWidth()) {
+                            Text("Ver todos os leads (${page.total})")
+                        }
                     }
                 }
             }
-        }
 
-        // Módulos autorizados
-        if (empresa != null) ModulosAutorizados(empresa, isTeam, nav)
-        else if (empresas is LoadState.Loading) SkeletonBlock(96.dp)
+            // Módulos autorizados
+            if (empresa != null) ModulosAutorizados(empresa, isTeam, nav)
+            else if (empresas is LoadState.Loading) SkeletonBlock(96.dp)
+        }
     }
 }
 

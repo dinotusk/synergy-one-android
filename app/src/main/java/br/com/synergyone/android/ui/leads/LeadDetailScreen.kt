@@ -1,6 +1,14 @@
 package br.com.synergyone.android.ui.leads
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -28,6 +36,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +67,7 @@ import br.com.synergyone.android.ui.common.etapas
 import br.com.synergyone.android.ui.common.formatDate
 import br.com.synergyone.android.ui.common.formatMoney
 import br.com.synergyone.android.ui.common.origemLabel
+import br.com.synergyone.android.ui.common.PullRefresh
 import br.com.synergyone.android.ui.common.rememberLoader
 import br.com.synergyone.android.ui.components.AppTopBar
 import br.com.synergyone.android.ui.components.EmptyDashboardState
@@ -103,37 +113,39 @@ fun LeadDetailScreen(
 
     fun recarregar() { estadoLoader.reload(); detalheLoader.reload() }
 
-    Column(
-        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        AppTopBar(title = lead.nome?.takeIf { it.isNotBlank() } ?: "Lead", userName = user.displayName, onAccount = nav::openPerfil, onBack = nav::back)
-        LeadCabecalho(lead)
+    PullRefresh(listOf(estadoLoader, detalheLoader), modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            AppTopBar(title = lead.nome?.takeIf { it.isNotBlank() } ?: "Lead", userName = user.displayName, onAccount = nav::openPerfil, onBack = nav::back)
+            LeadCabecalho(lead)
 
-        val localizada = (estado as? LoadState.Loaded)?.data
-        val podeEditar = user.canWrite && localizada?.apoio?.podeEditar == true
+            val localizada = (estado as? LoadState.Loaded)?.data
+            val podeEditar = user.canWrite && localizada?.apoio?.podeEditar == true
 
-        mensagem?.let { InfoNote("Pronto", it) }
+            mensagem?.let { InfoNote("Pronto", it) }
 
-        LoadStateContent(estado, onRetry = estadoLoader::reload, onSignIn = onSignIn) { loc ->
-            if (loc == null) {
-                InfoNote("Jornada indisponível", "Não foi possível localizar o estado da jornada deste lead (ele pode estar oculto por ser repetido ou teste). Você vê o contato e o histórico, sem editar.")
-            } else {
-                JornadaCard(loc, podeEditar, onEdit = { sheet = "jornada" })
-            }
-        }
-
-        LoadStateContent(detalhe, onRetry = detalheLoader::reload, onSignIn = onSignIn) { d ->
-            RecebimentosCard(d, localizada?.lead, podeEditar, onAdd = { sheet = "recebimento" })
-            NotasCard(d, podeEditar) { texto ->
-                scope.launch {
-                    when (val r = repo.adicionarNota(leadId, texto)) {
-                        is ApiResult.Success -> { mensagem = "Nota adicionada."; detalheLoader.reload() }
-                        is ApiResult.Error -> mensagem = r.message
-                    }
+            LoadStateContent(estado, onRetry = estadoLoader::reload, onSignIn = onSignIn) { loc ->
+                if (loc == null) {
+                    InfoNote("Jornada indisponível", "Não foi possível localizar o estado da jornada deste lead (ele pode estar oculto por ser repetido ou teste). Você vê o contato e o histórico, sem editar.")
+                } else {
+                    JornadaCard(loc, podeEditar, onEdit = { sheet = "jornada" })
                 }
             }
-            HistoricoCard(d)
+
+            LoadStateContent(detalhe, onRetry = detalheLoader::reload, onSignIn = onSignIn) { d ->
+                RecebimentosCard(d, localizada?.lead, podeEditar, onAdd = { sheet = "recebimento" })
+                NotasCard(d, podeEditar) { texto ->
+                    scope.launch {
+                        when (val r = repo.adicionarNota(leadId, texto)) {
+                            is ApiResult.Success -> { mensagem = "Nota adicionada."; detalheLoader.reload() }
+                            is ApiResult.Error -> mensagem = r.message
+                        }
+                    }
+                }
+                HistoricoCard(d)
+            }
         }
     }
 
@@ -239,6 +251,7 @@ private fun RecebimentosCard(d: JornadaDetalheDto, jornada: JornadaLeadDto?, pod
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun NotasCard(d: JornadaDetalheDto, podeEditar: Boolean, onAdd: (String) -> Unit) {
     var texto by rememberSaveable { mutableStateOf("") }
@@ -247,6 +260,18 @@ private fun NotasCard(d: JornadaDetalheDto, podeEditar: Boolean, onAdd: (String)
         SynergyCard(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (podeEditar) {
+                    val trazer = remember { BringIntoViewRequester() }
+                    var emFoco by remember { mutableStateOf(false) }
+                    val alturaTeclado = WindowInsets.ime.getBottom(LocalDensity.current)
+                    // O bloco campo + contador + botão inteiro fica visível acima do teclado. Refaz o pedido quando o
+                    // teclado abre (a área visível encolhe durante a animação, depois do foco) e a cada letra digitada.
+                    LaunchedEffect(emFoco, alturaTeclado, texto.length) {
+                        if (emFoco && alturaTeclado > 0) { withFrameNanos { }; trazer.bringIntoView() }
+                    }
+                    Column(
+                        modifier = Modifier.bringIntoViewRequester(trazer).onFocusEvent { emFoco = it.hasFocus },
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
                     OutlinedTextField(
                         value = texto,
                         onValueChange = { if (it.length <= 2000) texto = it },
@@ -256,6 +281,7 @@ private fun NotasCard(d: JornadaDetalheDto, podeEditar: Boolean, onAdd: (String)
                         minLines = 2,
                     )
                     Button(onClick = { onAdd(texto); texto = "" }, enabled = texto.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text("Adicionar nota") }
+                    }
                     if (d.notas.isNotEmpty()) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
                 if (d.notas.isEmpty() && !podeEditar) Text("Nenhuma nota.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -311,7 +337,7 @@ private fun EditJornadaSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
-            modifier = Modifier.navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 24.dp),
+            modifier = Modifier.navigationBarsPadding().imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text("Atualizar jornada", style = MaterialTheme.typography.titleLarge)
@@ -383,7 +409,7 @@ private fun RecebimentoSheet(onDismiss: () -> Unit, onSave: suspend (valor: Stri
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
-            modifier = Modifier.navigationBarsPadding().padding(horizontal = 24.dp).padding(bottom = 24.dp),
+            modifier = Modifier.navigationBarsPadding().imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text("Registrar recebimento", style = MaterialTheme.typography.titleLarge)

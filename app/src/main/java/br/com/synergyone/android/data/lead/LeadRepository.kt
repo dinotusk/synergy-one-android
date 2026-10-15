@@ -10,6 +10,9 @@ interface LeadRepository {
     /** Lead já carregado numa lista (o detalhe abre a partir dele; não há "GET de um lead"). */
     fun cached(id: Long): LeadDto?
 
+    /** Descarta o que ficou em memória da sessão anterior (logout/troca de conta). */
+    fun clear() {}
+
     /** [cursor] é opaco: só repasse o `proximoCursor` recebido (nunca monte um). */
     suspend fun pagina(
         empresaId: Long? = null,
@@ -53,6 +56,8 @@ class ApiLeadRepository(private val client: AppApiClient) : LeadRepository {
     private val cache = ConcurrentHashMap<Long, LeadDto>()
 
     override fun cached(id: Long): LeadDto? = cache[id]
+
+    override fun clear() = cache.clear()
 
     override suspend fun pagina(empresaId: Long?, etapa: String?, cursor: String?, desde: String?, limite: Int) =
         client.get<LeadsPage>(

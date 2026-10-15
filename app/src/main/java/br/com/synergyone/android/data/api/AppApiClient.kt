@@ -26,6 +26,8 @@ private data class ErrorBody(val error: String? = null, val message: String? = n
 class AppApiClient(
     private val api: AppApi,
     private val auth: AuthRepository,
+    /** Chamado após qualquer gravação bem-sucedida (não GET): quem leu antes passa a ter dado velho. */
+    private val onMutation: () -> Unit = {},
 ) {
     suspend fun getRaw(path: String, query: Map<String, String> = emptyMap()): ApiResult<String> =
         call("GET", path, query, null)
@@ -61,7 +63,7 @@ class AppApiClient(
                 val renewed = auth.accessToken(rejected = token) ?: return sessionExpired()
                 response = api.request(method, path, renewed, query, body)
             }
-            toResult(response)
+            toResult(response).also { if (it is ApiResult.Success && method != "GET") onMutation() }
         } catch (e: IOException) {
             ApiResult.Error(MSG_NETWORK, e, ApiErrors.NETWORK)
         }

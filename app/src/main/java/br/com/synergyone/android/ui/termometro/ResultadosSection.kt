@@ -19,6 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
@@ -103,7 +105,7 @@ internal fun isLargeFont() = LocalConfiguration.current.fontScale > 1.3f
 
 @Composable
 internal fun Stat(label: String, value: String, modifier: Modifier = Modifier, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(modifier = modifier.clearAndSetSemantics { contentDescription = "$label: $value" }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(value, style = MaterialTheme.typography.headlineSmall, color = valueColor, maxLines = 1)
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
@@ -172,7 +174,7 @@ internal fun OrigemCard(origens: List<Pair<String, Int>>, total: Int, semOrigem:
                 Text("origem registrada em cada lead • $total no período", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             origens.take(6).forEach { (nome, qtd) ->
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Column(modifier = Modifier.clearAndSetSemantics { contentDescription = "$nome: $qtd" }, verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(nome, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                         Text(qtd.toString(), style = MaterialTheme.typography.labelLarge)
@@ -201,7 +203,7 @@ private fun SecondaryStatsCard(r: ResultadosDto) {
     SynergyCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 4.dp)) {
             linhas.forEachIndexed { i, (rotulo, valor) ->
-                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).clearAndSetSemantics { contentDescription = "$rotulo: $valor" }, verticalAlignment = Alignment.CenterVertically) {
                     Text(rotulo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
                     Text(valor, style = MaterialTheme.typography.labelLarge)
                 }
@@ -222,7 +224,9 @@ internal fun FunilCard(funil: List<FunilDto>) {
                 Text("leads por etapa • % sobre o total captado", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             funil.forEach { etapa ->
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                val rotuloEtapa = etapa.rotulo ?: etapaLabel(etapa.etapa)
+                val pct = base?.let { ", ${(etapa.total * 100f / it).toInt()}% do total" }.orEmpty()
+                Column(modifier = Modifier.clearAndSetSemantics { contentDescription = "$rotuloEtapa: ${etapa.total}$pct" }, verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(etapa.rotulo ?: etapaLabel(etapa.etapa), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                         Text(etapa.total.toString(), style = MaterialTheme.typography.labelLarge)

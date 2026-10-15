@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,6 +31,7 @@ import br.com.synergyone.android.ui.client.ClientHomeScreen
 import br.com.synergyone.android.ui.components.BrandMark
 import br.com.synergyone.android.ui.conta.ContaScreen
 import br.com.synergyone.android.ui.empresas.EmpresaFichaScreen
+import br.com.synergyone.android.ui.common.LocalDataFreshness
 import br.com.synergyone.android.ui.leads.LeadDetailScreen
 import br.com.synergyone.android.ui.leads.LeadsScreen
 import br.com.synergyone.android.ui.login.LoginRoute
@@ -82,6 +84,10 @@ fun SynergyNavGraph(
     fun NavBackStackEntry.id(): Long = arguments?.getString(NavRoutes.ARG_ID)?.toLongOrNull() ?: 0L
     val idArg = listOf(navArgument(NavRoutes.ARG_ID) { type = NavType.StringType })
 
+    // Sem usuário (logout, sessão expirada, troca de conta): nada da sessão anterior pode sobrar em memória.
+    LaunchedEffect(user == null) { if (user == null) container.clearSessionData() }
+
+    CompositionLocalProvider(LocalDataFreshness provides container.freshness) {
     NavHost(navController = navController, startDestination = startDestination) {
         composable(NavRoutes.SPLASH) {
             LaunchedEffect(Unit) {
@@ -132,6 +138,7 @@ fun SynergyNavGraph(
             }
         }
         composable(NavRoutes.LEAD, idArg) { e -> Authed { LeadDetailScreen(e.id(), it, container, nav, logout) } }
+    }
     }
 }
 

@@ -1,5 +1,6 @@
 package br.com.synergyone.android.data.api
 
+import br.com.synergyone.android.core.PerfLog
 import br.com.synergyone.android.data.remote.HttpResult
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
@@ -46,9 +47,13 @@ class OkHttpAppApi(
             .header("Accept", "application/json")
             .method(method, body?.toRequestBody(JSON) ?: if (method == "GET") null else "".toRequestBody(JSON))
             .build()
+        val started = System.nanoTime()
         return withContext(Dispatchers.IO) {
             client.newCall(request).execute().use {
-                HttpResult(it.code, it.body?.string().orEmpty(), it.header("x-request-id"))
+                val r = HttpResult(it.code, it.body?.string().orEmpty(), it.header("x-request-id"))
+                // Só debug e só método + rota sem ids + status + tempo. Nunca token, query ou corpo.
+                PerfLog.d("$method ${path.replace(Regex("\\d+"), "N")} -> ${r.code} ${(System.nanoTime() - started) / 1_000_000}ms ${r.body.length}B")
+                r
             }
         }
     }

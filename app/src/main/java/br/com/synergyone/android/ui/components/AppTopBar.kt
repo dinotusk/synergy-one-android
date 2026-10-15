@@ -20,7 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,7 +42,7 @@ fun AppTopBar(title: String, userName: String, onAccount: (() -> Unit)?, modifie
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
             }
         } else {
-            BrandMark(size = 36.dp)
+            BrandMark(size = 36.dp, decorative = true)
         }
         Text(
             title,
@@ -55,7 +57,7 @@ fun AppTopBar(title: String, userName: String, onAccount: (() -> Unit)?, modifie
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .clickable(onClickLabel = "Abrir conta", role = Role.Button, onClick = onAccount)
-                .semantics { contentDescription = "Conta de $userName" },
+                .clearAndSetSemantics { contentDescription = "Conta de $userName"; role = Role.Button },
             contentAlignment = Alignment.Center,
         ) {
             Text(initialsOf(userName), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)

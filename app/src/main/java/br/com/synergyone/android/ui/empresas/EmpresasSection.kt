@@ -18,7 +18,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import br.com.synergyone.android.ui.common.LoadStateContent
+import br.com.synergyone.android.ui.common.PullRefresh
+import br.com.synergyone.android.ui.common.rememberLoader
 import br.com.synergyone.android.data.empresa.Empresa
 import br.com.synergyone.android.data.empresa.EmpresaRepository
 import br.com.synergyone.android.ui.common.moduloLabel
@@ -34,21 +39,21 @@ fun EmpresasSection(
     emptyTitle: String,
     emptyDetail: String,
     modifier: Modifier = Modifier,
+    onSignIn: () -> Unit,
     onEmpresaClick: ((Long) -> Unit)? = null,
 ) {
-    val viewModel: EmpresasViewModel = viewModel(factory = EmpresasViewModel.Factory(repository))
-    val state by viewModel.state.collectAsState()
+    val loader = rememberLoader("empresas") { repository.listar() }
+    val state by loader.state.collectAsState()
 
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        when (val s = state) {
-            EmpresasUiState.Loading -> CircularProgressIndicator()
-            is EmpresasUiState.Error -> {
-                EmptyDashboardState("Não foi possível carregar", s.message)
-                TextButton(onClick = viewModel::carregar) { Text("Tentar novamente") }
+    PullRefresh(listOf(loader), modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            LoadStateContent(state, onRetry = loader::reload, onSignIn = onSignIn) { empresas ->
+                if (empresas.isEmpty()) EmptyDashboardState(emptyTitle, emptyDetail)
+                else empresas.forEach { EmpresaCard(it, onEmpresaClick) }
             }
-            is EmpresasUiState.Loaded ->
-                if (s.empresas.isEmpty()) EmptyDashboardState(emptyTitle, emptyDetail)
-                else s.empresas.forEach { EmpresaCard(it, onEmpresaClick) }
         }
     }
 }

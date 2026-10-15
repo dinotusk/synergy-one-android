@@ -34,6 +34,8 @@ import br.com.synergyone.android.ui.common.LoadStateContent
 import br.com.synergyone.android.ui.common.formatDate
 import br.com.synergyone.android.ui.common.formatPeriod
 import br.com.synergyone.android.ui.common.formatPeriodShort
+import br.com.synergyone.android.ui.common.PullRefresh
+import br.com.synergyone.android.data.lead.captadosDesde
 import br.com.synergyone.android.ui.common.rememberLoader
 import br.com.synergyone.android.ui.components.AppTopBar
 import br.com.synergyone.android.ui.components.SectionTitle
@@ -74,8 +76,12 @@ fun TermometroClienteScreen(
     val intervalo = livre ?: periodPresets()[1]
     val empresaEfetiva = empresaId ?: dados?.empresa?.id ?: user.empresas.firstOrNull()?.id
 
+    val coorte = if (modoLeads) rememberLoader("ind-coorte-$empresaEfetiva-${intervalo.desde}") { leadRepository.captadosDesde(empresaEfetiva, intervalo.desde) } else null
+    val ganhosLoader = if (modoLeads) rememberLoader("ind-ganhos-$empresaEfetiva") { leadRepository.captadosDesde(empresaEfetiva, desde = null, etapa = "ganho") } else null
+
+    PullRefresh(listOfNotNull(loader, coorte, ganhosLoader), modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         AppTopBar(title = "Termômetro", userName = user.displayName, onAccount = onAccount, onBack = onBack)
@@ -99,9 +105,10 @@ fun TermometroClienteScreen(
         LoadStateContent(state, onRetry = loader::reload, onSignIn = onSignIn) { d ->
             if (modoLeads) SemAvaliacaoNote(d, livre != null) else PublicadoContent(d, selecionada, onSelect = { avaliacaoId = it; livre = null })
         }
-        if (modoLeads) {
-            IndicadoresAtuais(leadRepository, empresaEfetiva, intervalo, onSignIn)
+        if (coorte != null && ganhosLoader != null) {
+            IndicadoresAtuais(coorte, ganhosLoader, intervalo, onSignIn)
         }
+    }
     }
 
     if (sheet) {

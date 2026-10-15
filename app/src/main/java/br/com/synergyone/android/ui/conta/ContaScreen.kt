@@ -91,7 +91,7 @@ fun ContaScreen(user: AuthenticatedUser, onLogout: () -> Unit, themeSettings: Th
             val opcoes = listOf(ThemeMode.Dark to "Escuro", ThemeMode.Light to "Claro", ThemeMode.System to "Sistema")
             opcoes.forEachIndexed { i, (m, label) ->
                 if (i > 0) SettingsDivider()
-                SettingsRow(label, checked = mode == m, onClickLabel = "Usar tema $label", onClick = { themeSettings.set(m) })
+                SettingsRow(label, checked = mode == m, selectable = true, onClickLabel = "Usar tema $label", onClick = { themeSettings.set(m) })
             }
         }
 

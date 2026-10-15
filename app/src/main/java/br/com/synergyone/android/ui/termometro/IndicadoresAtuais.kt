@@ -12,10 +12,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import br.com.synergyone.android.data.lead.LeadRepository
 import br.com.synergyone.android.data.lead.LeadsDesde
 import br.com.synergyone.android.data.lead.MAX_PAGINAS
-import br.com.synergyone.android.data.lead.captadosDesde
 import br.com.synergyone.android.ui.common.InfoNote
 import br.com.synergyone.android.ui.common.LoadState
 import br.com.synergyone.android.ui.common.LoadStateContent
@@ -24,7 +22,7 @@ import br.com.synergyone.android.ui.common.formatMoney
 import br.com.synergyone.android.ui.common.formatNumber
 import br.com.synergyone.android.ui.common.formatPeriod
 import br.com.synergyone.android.ui.common.formatPercent
-import br.com.synergyone.android.ui.common.rememberLoader
+import br.com.synergyone.android.ui.common.LoaderViewModel
 import br.com.synergyone.android.ui.components.ChartPoint
 import br.com.synergyone.android.ui.components.EvolutionCard
 import br.com.synergyone.android.ui.components.SectionTitle
@@ -37,7 +35,13 @@ import java.time.LocalDate
  * leads captados no período e vendas fechadas no período.
  */
 @Composable
-fun IndicadoresAtuais(repository: LeadRepository, empresaId: Long?, intervalo: PeriodRange, onSignIn: () -> Unit, modifier: Modifier = Modifier) {
+fun IndicadoresAtuais(
+    coorte: LoaderViewModel<LeadsDesde>,
+    ganhos: LoaderViewModel<LeadsDesde>,
+    intervalo: PeriodRange,
+    onSignIn: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val periodo = formatPeriod(intervalo.desde, intervalo.ate)
     val desde = LocalDate.parse(intervalo.desde)
     val ate = LocalDate.parse(intervalo.ate)
@@ -48,14 +52,12 @@ fun IndicadoresAtuais(repository: LeadRepository, empresaId: Long?, intervalo: P
             "Estes números vêm dos seus leads neste momento, no horário de Brasília. Mudam conforme os leads avançam e não são os números congelados de uma avaliação publicada.",
         )
 
-        val coorte = rememberLoader("ind-coorte-$empresaId-${intervalo.desde}") { repository.captadosDesde(empresaId, intervalo.desde) }
         val estadoCoorte by coorte.state.collectAsState()
         Text("Leads captados no período", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 4.dp))
         LoadStateContent(estadoCoorte, onRetry = coorte::reload, onSignIn = onSignIn) { d ->
             if (!d.completo) LimiteNote(d, intervalo) else CoorteBlock(d, desde, ate, periodo)
         }
 
-        val ganhos = rememberLoader("ind-ganhos-$empresaId") { repository.captadosDesde(empresaId, desde = null, etapa = "ganho") }
         val estadoGanhos by ganhos.state.collectAsState()
         Text("Vendas fechadas no período", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
         LoadStateContent(estadoGanhos, onRetry = ganhos::reload, onSignIn = onSignIn) { d ->

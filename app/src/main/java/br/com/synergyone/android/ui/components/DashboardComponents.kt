@@ -89,7 +89,7 @@ fun SectionTitle(title: String, modifier: Modifier = Modifier, eyebrow: String? 
                 color = MaterialTheme.synergy.primaryText,
             )
         }
-        Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+        Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.semantics { heading() })
     }
 }
 

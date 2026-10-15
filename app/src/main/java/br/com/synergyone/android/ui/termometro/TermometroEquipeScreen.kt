@@ -40,6 +40,7 @@ import br.com.synergyone.android.ui.common.LoadStateContent
 import br.com.synergyone.android.ui.common.formatDate
 import br.com.synergyone.android.ui.common.formatPeriod
 import br.com.synergyone.android.ui.common.formatPeriodShort
+import br.com.synergyone.android.ui.common.PullRefresh
 import br.com.synergyone.android.ui.common.rememberLoader
 import br.com.synergyone.android.ui.components.BadgeTone
 import br.com.synergyone.android.ui.components.EmptyDashboardState
@@ -81,41 +82,44 @@ fun TermometroEquipeScreen(
     var empresas by remember { mutableStateOf<List<EmpresaTermometroDto>>(emptyList()) }
     if (dados != null && dados.empresas.isNotEmpty()) empresas = dados.empresas
 
-    Column(
-        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        AppTopBar(title = "Termômetro", userName = user.displayName, onAccount = onAccount, onBack = onBack)
+    PullRefresh(listOf(loader), modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            AppTopBar(title = "Termômetro", userName = user.displayName, onAccount = onAccount, onBack = onBack)
 
-        SelectorsRow {
-            EmpresaSelector(
-                empresas = empresas.filter { fixedEmpresaId == null || it.id == fixedEmpresaId }.map { EmpresaOption(it.id, it.nome, Classificacao.fromWire(it.ultima?.classificacao)) },
-                selecionadaId = empresaId ?: dados?.empresaId,
-                onSelect = { empresaId = it },
-                modifier = it,
-            )
-            PeriodSelectorChip(
-                label = dados?.periodo?.let { formatPeriodShort(it.inicio, it.fim) } ?: periodLabel ?: "Últimos 30 dias",
-                enabled = true,
-                modifier = it,
-                onClick = { periodoSheet = true },
-            )
-        }
+            SelectorsRow {
+                EmpresaSelector(
+                    empresas = empresas.filter { fixedEmpresaId == null || it.id == fixedEmpresaId }.map { EmpresaOption(it.id, it.nome, Classificacao.fromWire(it.ultima?.classificacao)) },
+                    selecionadaId = empresaId ?: dados?.empresaId,
+                    onSelect = { empresaId = it },
+                    modifier = it,
+                    vazioLabel = if (state is LoadState.Loading) "Carregando…" else "Sem empresa",
+                )
+                PeriodSelectorChip(
+                    label = dados?.periodo?.let { formatPeriodShort(it.inicio, it.fim) } ?: periodLabel ?: "Últimos 30 dias",
+                    enabled = true,
+                    modifier = it,
+                    onClick = { periodoSheet = true },
+                )
+            }
 
-        mensagem?.let { InfoNote("Pronto", it) }
-        LoadStateContent(state, onRetry = loader::reload, onSignIn = onSignIn) { d ->
-            val podeEditar = d.podeEditar && user.canWrite
-            val podePublicar = d.podePublicar && user.isAdminOrManager
-            PainelContent(
-                dados = d,
-                podeEditar = podeEditar,
-                podePublicar = podePublicar,
-                onNova = { sheet = null to AvaliacaoForm(d.empresaId ?: 0, periodoInicio = d.periodo?.inicio, periodoFim = d.periodo?.fim) },
-                onEditar = { a -> sheet = a.id to AvaliacaoForm.from(a, d.empresaId ?: 0) },
-                // Publicada não se edita: a correção vira um NOVO rascunho com o mesmo conteúdo.
-                onCorrigir = { a -> sheet = null to AvaliacaoForm.from(a, d.empresaId ?: 0) },
-                onPublicar = { a -> confirmarPublicar = a.id },
-            )
+            mensagem?.let { InfoNote("Pronto", it) }
+            LoadStateContent(state, onRetry = loader::reload, onSignIn = onSignIn) { d ->
+                val podeEditar = d.podeEditar && user.canWrite
+                val podePublicar = d.podePublicar && user.isAdminOrManager
+                PainelContent(
+                    dados = d,
+                    podeEditar = podeEditar,
+                    podePublicar = podePublicar,
+                    onNova = { sheet = null to AvaliacaoForm(d.empresaId ?: 0, periodoInicio = d.periodo?.inicio, periodoFim = d.periodo?.fim) },
+                    onEditar = { a -> sheet = a.id to AvaliacaoForm.from(a, d.empresaId ?: 0) },
+                    // Publicada não se edita: a correção vira um NOVO rascunho com o mesmo conteúdo.
+                    onCorrigir = { a -> sheet = null to AvaliacaoForm.from(a, d.empresaId ?: 0) },
+                    onPublicar = { a -> confirmarPublicar = a.id },
+                )
+            }
         }
     }
 
@@ -220,7 +224,7 @@ private fun AvaliacoesCard(
         SectionTitle("Avaliações", eyebrow = "Todas as avaliações")
         if (podeEditar) Button(onClick = onNova, modifier = Modifier.fillMaxWidth()) { Text("Nova avaliação") }
         if (avaliacoes.isEmpty()) {
-            EmptyDashboardState("Ainda não avaliado", "Esta empresa ainda não tem avaliações. Elas aparecem aqui como rascunho até serem publicadas.")
+            EmptyDashboardState("Nenhuma avaliação", "Esta empresa ainda não tem avaliações. Elas aparecem aqui como rascunho até serem publicadas.")
             return
         }
         SynergyCard(modifier = Modifier.fillMaxWidth()) {

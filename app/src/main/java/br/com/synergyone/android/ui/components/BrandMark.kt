@@ -25,7 +25,7 @@ private val MarkChip = Color(0xFFEEEAFC)
  * baixo (~1,2:1 no topo escuro), então vai num chip lilás claro e pequeno, igual ao ícone do app.
  */
 @Composable
-fun BrandMark(modifier: Modifier = Modifier, size: Dp = 96.dp) {
+fun BrandMark(modifier: Modifier = Modifier, size: Dp = 96.dp, decorative: Boolean = false) {
     Surface(
         modifier = modifier.size(size),
         shape = RoundedCornerShape(size * 0.30f),
@@ -34,7 +34,8 @@ fun BrandMark(modifier: Modifier = Modifier, size: Dp = 96.dp) {
     ) {
         Image(
             painter = painterResource(R.drawable.logo_synergy),
-            contentDescription = stringResource(R.string.login_brand_mark_description),
+            // Nas barras de título a marca é só decoração: o título da tela já identifica onde a pessoa está.
+            contentDescription = if (decorative) null else stringResource(R.string.login_brand_mark_description),
             contentScale = ContentScale.Fit,
             modifier = Modifier.padding(size * 0.2f),
         )

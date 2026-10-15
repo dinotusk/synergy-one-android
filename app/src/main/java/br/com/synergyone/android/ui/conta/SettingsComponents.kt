@@ -1,6 +1,7 @@
 package br.com.synergyone.android.ui.conta
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.synergyone.android.ui.components.GroupLabel
@@ -54,6 +56,8 @@ fun SettingsRow(
     icon: ImageVector? = null,
     external: Boolean = false,
     checked: Boolean = false,
+    /** Opção de uma escolha única (aparência): o leitor anuncia "selecionado" em vez de um ícone solto. */
+    selectable: Boolean = false,
     destructive: Boolean = false,
     onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
@@ -65,7 +69,14 @@ fun SettingsRow(
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = 52.dp)
-            .let { if (onClick != null) it.clickable(role = Role.Button, onClickLabel = onClickLabel, onClick = onClick) else it }
+            .let {
+                when {
+                    onClick == null -> it
+                    selectable -> it.selectable(selected = checked, role = Role.RadioButton, onClick = onClick)
+                    else -> it.clickable(role = Role.Button, onClickLabel = onClickLabel, onClick = onClick)
+                }
+            }
+            .semantics(mergeDescendants = true) {} // "Papel, Gestão" como um item só para o leitor de tela
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -79,7 +90,7 @@ fun SettingsRow(
         if (value != null && !empilhar) {
             Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
         }
-        if (checked) Icon(Icons.Filled.Check, contentDescription = "Selecionado", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
+        if (checked) Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
         if (external) Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Abre no navegador", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
     }
 }

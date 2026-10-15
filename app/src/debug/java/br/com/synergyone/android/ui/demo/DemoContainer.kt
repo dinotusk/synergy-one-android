@@ -103,7 +103,16 @@ object DemoData {
     )
 }
 
-private suspend fun <T> demo(value: T): ApiResult<T> { delay(600); return ApiResult.Success(value) }
+/** Só debug: `--es state error` (falha em toda chamada) e `--es state slow` (carregamento longo, para inspecionar o esqueleto). */
+object DemoMode {
+    var error = false
+    var delayMs = 600L
+}
+
+private suspend fun <T> demo(value: T): ApiResult<T> {
+    delay(DemoMode.delayMs)
+    return if (DemoMode.error) ApiResult.Error("Não foi possível conectar. Verifique sua internet e tente novamente.", code = "rede") else ApiResult.Success(value)
+}
 
 /** Jornada em memória: permite exercitar edição, notas e recebimentos sem tocar no servidor. */
 class DemoJornada(private val canEdit: Boolean) : JornadaRepository {
@@ -157,6 +166,8 @@ class DemoJornada(private val canEdit: Boolean) : JornadaRepository {
 
 class DemoContainer(context: android.content.Context, private val demoUser: AuthenticatedUser, private val vazio: Boolean = false, private val semAvaliacao: Boolean = false, private val acimaDoLimite: Boolean = false) : AppContainer {
     override val themeSettings = br.com.synergyone.android.data.settings.ThemeSettings(context)
+    override val freshness = br.com.synergyone.android.data.freshness.DataFreshness()
+    override fun clearSessionData() {}
     override val jornadaRepository: JornadaRepository = DemoJornada(demoUser.canWrite)
     override val authRepository = object : AuthRepository {
         override val currentUser: StateFlow<AuthenticatedUser?> = MutableStateFlow(demoUser)

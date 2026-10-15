@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -53,8 +54,8 @@ fun EvolutionCard(
             } else {
                 LineChart(points, unit, format)
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(points.first().label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-                    Text(points.last().label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(points.first().label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f).clearAndSetSemantics {})
+                    Text(points.last().label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clearAndSetSemantics {})
                 }
             }
         }
@@ -68,7 +69,7 @@ private fun LineChart(points: List<ChartPoint>, unit: String, format: (Double) -
     val grid = MaterialTheme.colorScheme.outlineVariant
     val max = points.maxOf { it.value }.coerceAtLeast(1f)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Column(modifier = Modifier.height(120.dp), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(modifier = Modifier.height(120.dp).clearAndSetSemantics {}, verticalArrangement = Arrangement.SpaceBetween) {
             Text(format(max.toDouble()), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("0", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -76,7 +77,7 @@ private fun LineChart(points: List<ChartPoint>, unit: String, format: (Double) -
             modifier = Modifier
                 .weight(1f)
                 .height(120.dp)
-                .semantics { contentDescription = "Gráfico de $unit, de ${points.first().label} a ${points.last().label}, máximo ${format(max.toDouble())}" },
+                .semantics { contentDescription = "Gráfico de linha: $unit, de ${points.first().label} a ${points.last().label}. Máximo ${format(max.toDouble())}, último valor ${format(points.last().value.toDouble())}." },
         ) {
             val path = Path()
             val pad = 4.dp.toPx()
