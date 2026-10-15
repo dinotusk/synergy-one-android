@@ -98,9 +98,9 @@ fun LeadsScreen(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                FilterChip(selected = state.etapa == null, onClick = { viewModel.selectEtapa(null) }, label = { Text("Todos") })
+                FilterChip(selected = state.etapa == null, onClick = { viewModel.selectEtapa(null) }, colors = br.com.synergyone.android.ui.components.synergyChipColors(), label = { Text("Todos") })
                 filtros.forEach { etapa ->
-                    FilterChip(selected = state.etapa == etapa, onClick = { viewModel.selectEtapa(etapa) }, label = { Text(etapaLabel(etapa)) })
+                    FilterChip(selected = state.etapa == etapa, onClick = { viewModel.selectEtapa(etapa) }, colors = br.com.synergyone.android.ui.components.synergyChipColors(), label = { Text(etapaLabel(etapa)) })
                 }
             }
         }
@@ -154,10 +154,10 @@ internal fun etapaTone(etapa: String) = when (etapa) {
 
 @Composable
 private fun LeadCard(lead: LeadDto, onClick: ((Long) -> Unit)?) {
-    SynergyCard(modifier = Modifier.fillMaxWidth().let { m -> if (onClick != null) m.clickable(onClickLabel = "Abrir lead") { onClick(lead.id) } else m }) {
-        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.Top) {
+    SynergyCard(modifier = Modifier.fillMaxWidth().let { m -> if (onClick != null) m.clickable(role = androidx.compose.ui.semantics.Role.Button, onClickLabel = "Abrir lead") { onClick(lead.id) } else m }) {
+        Row(modifier = Modifier.padding(14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
             Box(
-                modifier = Modifier.size(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+                modifier = Modifier.size(38.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(initialsOf(lead.nome.orEmpty()), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
@@ -174,12 +174,12 @@ private fun LeadCard(lead: LeadDto, onClick: ((Long) -> Unit)?) {
                     StatusBadge(etapaLabel(lead.etapa), etapaTone(lead.etapa))
                 }
                 val origem = listOfNotNull(origemLabel(lead.origem, lead.canal), lead.cidade?.takeIf { it.isNotBlank() }).joinToString(" • ")
-                if (origem.isNotBlank()) Text(origem, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (origem.isNotBlank()) Text(origem, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 lead.mensagem?.takeIf { it.isNotBlank() }?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Captado em ${formatDate(lead.capturadoEm)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(formatDate(lead.capturadoEm), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     lead.vendaCentavos?.let {
                         Text(formatMoney(it), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.synergy.success)
                     }

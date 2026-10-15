@@ -317,7 +317,7 @@ private fun EditJornadaSheet(
             Text("Atualizar jornada", style = MaterialTheme.typography.titleLarge)
             Text("Etapa", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                etapas.forEach { e -> FilterChip(selected = form.etapa == e, onClick = { form = form.copy(etapa = e); error = null }, label = { Text(etapaLabel(e)) }) }
+                etapas.forEach { e -> FilterChip(selected = form.etapa == e, onClick = { form = form.copy(etapa = e); error = null }, colors = br.com.synergyone.android.ui.components.synergyChipColors(), label = { Text(etapaLabel(e)) }) }
             }
             PickerField("Responsável", localizada.apoio.responsaveis.map { it.id to it.nome }, form.responsavelId, "Sem responsável") { form = form.copy(responsavelId = it) }
             PickerField(

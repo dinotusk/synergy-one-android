@@ -70,7 +70,7 @@ fun AvaliacaoSheet(
                     FilterChip(
                         selected = form.classificacao == wire,
                         onClick = { form = form.copy(classificacao = wire); error = null },
-                        label = { Text(c.label) },
+                        colors = br.com.synergyone.android.ui.components.synergyChipColors(), label = { Text(c.label) },
                         leadingIcon = { Icon(c.icon, contentDescription = null, tint = c.color()) },
                     )
                 }

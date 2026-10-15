@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import br.com.synergyone.android.data.settings.ThemeMode
@@ -21,7 +22,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val mode by container.themeSettings.mode.collectAsState()
-            SynergyOneTheme(darkTheme = mode == ThemeMode.Dark) {
+            val dark = when (mode) {
+                ThemeMode.Dark -> true
+                ThemeMode.Light -> false
+                ThemeMode.System -> isSystemInDarkTheme()
+            }
+            SynergyOneTheme(darkTheme = dark) {
                 SynergyNavGraph(container = container)
             }
         }

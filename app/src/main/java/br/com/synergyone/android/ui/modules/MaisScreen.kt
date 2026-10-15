@@ -25,9 +25,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import br.com.synergyone.android.data.auth.model.AuthenticatedUser
 import br.com.synergyone.android.ui.components.AppTopBar
-import br.com.synergyone.android.ui.components.BadgeTone
-import br.com.synergyone.android.ui.components.SectionTitle
-import br.com.synergyone.android.ui.components.StatusBadge
+import br.com.synergyone.android.ui.components.GroupLabel
 import br.com.synergyone.android.ui.components.SynergyCard
 import br.com.synergyone.android.ui.navigation.AppNavigator
 
@@ -60,7 +58,7 @@ fun MaisScreen(
                 Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.synergyPrimaryText(), modifier = Modifier.size(22.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Perfil e configurações", style = MaterialTheme.typography.titleSmall)
-                    Text("${user.displayName} • aparência e sair", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${user.displayName} • aparência, segurança e ajuda", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -68,7 +66,7 @@ fun MaisScreen(
 
         if (empresas.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SectionTitle(if (empresas.size == 1) "Minha empresa" else "Minhas empresas", eyebrow = "Ficha")
+                GroupLabel(if (empresas.size == 1) "Minha empresa" else "Minhas empresas")
                 SynergyCard(modifier = Modifier.fillMaxWidth()) {
                     Column {
                         empresas.forEachIndexed { i, e ->
@@ -85,24 +83,13 @@ fun MaisScreen(
             if (itens.isNotEmpty()) CategoryBlock(categoria, itens, nav, onOpenNative)
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            SectionTitle("Legal", eyebrow = "Informações")
-            SynergyCard(modifier = Modifier.fillMaxWidth()) {
-                Column {
-                    ModuleCatalog.legal.forEachIndexed { i, (label, path) ->
-                        ModuleRow(label, null, external = true, onClick = { nav.openWeb(path) })
-                        if (i != ModuleCatalog.legal.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
-                    }
-                }
-            }
-        }
     }
 }
 
 @Composable
 private fun CategoryBlock(categoria: ModuleCategory, itens: List<AppModule>, nav: AppNavigator, onOpenNative: (NativeTab) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        SectionTitle(categoria.label, eyebrow = "Módulos")
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        GroupLabel(categoria.label)
         SynergyCard(modifier = Modifier.fillMaxWidth()) {
             Column {
                 itens.forEachIndexed { i, m ->
@@ -139,10 +126,8 @@ fun ModuleRow(label: String, description: String?, external: Boolean, onClick: (
             if (description != null) Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (external) {
-            StatusBadge("Site", BadgeTone.Neutral)
             Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Abre no navegador", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
         } else {
-            StatusBadge("No app", BadgeTone.Brand)
             Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }

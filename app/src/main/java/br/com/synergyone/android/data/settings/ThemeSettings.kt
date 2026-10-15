@@ -5,11 +5,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class ThemeMode { Dark, Light }
+enum class ThemeMode { Dark, Light, System }
 
 /**
- * Preferência de aparência. O padrão é **escuro** (identidade do produto), independente do tema do
- * celular; o claro é opção do usuário. Não é dado sensível: SharedPreferences comum.
+ * Preferência de aparência. O padrão inicial é **escuro** (identidade do produto), independente do tema do
+ * celular; claro e "seguir o sistema" são opções do usuário. Não é dado sensível: SharedPreferences comum.
  */
 class ThemeSettings(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("synergy_prefs", Context.MODE_PRIVATE)

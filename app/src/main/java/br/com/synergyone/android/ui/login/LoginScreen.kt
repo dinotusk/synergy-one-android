@@ -94,7 +94,7 @@ fun LoginScreen(
     onLoginClick: () -> Unit,
 ) {
     var logoVisible by remember { mutableStateOf(false) }
-    var showRecoveryNotice by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     val logoAlpha by animateFloatAsState(
         targetValue = if (logoVisible) 1f else 0f,
         animationSpec = tween(durationMillis = 420),
@@ -179,19 +179,11 @@ fun LoginScreen(
                         )
 
                         TextButton(
-                            onClick = { showRecoveryNotice = !showRecoveryNotice },
+                            // Recuperação pelo site (contrato MOBILE-AUTH §7): o app não chama /auth/v1/recover.
+                            onClick = { br.com.synergyone.android.ui.modules.WebLauncher.open(context, "/entrar") },
                             enabled = !uiState.isLoading,
                             modifier = Modifier.padding(top = 6.dp),
                         ) { Text(stringResource(R.string.login_forgot_password)) }
-
-                        if (showRecoveryNotice) {
-                            Text(
-                                text = stringResource(R.string.login_recovery_unavailable),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 12.dp),
-                            )
-                        }
 
                         if (uiState.errorMessage != null) {
                             Surface(

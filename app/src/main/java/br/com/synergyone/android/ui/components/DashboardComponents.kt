@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -59,11 +60,21 @@ fun SynergyCard(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shadowElevation = 1.dp,
         content = content,
+    )
+}
+
+/** Rótulo discreto de grupo (Configurações, Mais): evita repetir "Módulos" em cada bloco. */
+@Composable
+fun GroupLabel(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier.padding(start = 4.dp).semantics { heading() },
     )
 }
 
@@ -162,3 +173,11 @@ fun EmptyDashboardState(
         }
     }
 }
+
+/** Chip de filtro: o selecionado usa o lilás do tema (visível no claro e no escuro), não só um cinza sutil. */
+@Composable
+fun synergyChipColors() = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+    selectedLabelColor = MaterialTheme.synergy.primaryText,
+    selectedLeadingIconColor = MaterialTheme.synergy.primaryText,
+)

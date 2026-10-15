@@ -12,7 +12,6 @@
     <string name="login_password_hide">Ocultar senha</string>
     <string name="login_button">Entrar</string>
     <string name="login_forgot_password">Esqueci minha senha</string>
-    <string name="login_recovery_unavailable">A recuperação de senha será habilitada com o serviço de autenticação.</string>
     <string name="login_security_notice">Ambiente seguro e exclusivo para usuários autorizados.</string>
     <string name="login_error_blank_fields">Informe usuário e senha.</string>
     <string name="login_error_backend_pending">Integração com o backend ainda não configurada. Veja docs/API_CONTRACTS.md.</string>
