@@ -1,0 +1,332 @@
+{
+  "versaoDefinicoes": "2026-10-a",
+  "empresa": {
+    "id": 4,
+    "nome": "Empresa Exemplo"
+  },
+  "fuso": "America/Sao_Paulo",
+  "calculadoEm": "2026-10-15T15:00:00.000Z",
+  "periodo": {
+    "de": "2026-09-16",
+    "ate": "2026-10-15",
+    "dias": 30
+  },
+  "atual": {
+    "periodo": {
+      "de": "2026-09-16",
+      "ate": "2026-10-15",
+      "dias": 30
+    },
+    "agrupamento": "semana",
+    "captados": 20,
+    "porEtapa": {
+      "novo": 6,
+      "contatado": 5,
+      "negociacao": 5,
+      "fechou": 4,
+      "perdeu": 0
+    },
+    "funil": [
+      {
+        "etapa": "captado",
+        "rotulo": "Captado",
+        "total": 20
+      },
+      {
+        "etapa": "qualificado",
+        "rotulo": "Qualificado",
+        "total": 14
+      },
+      {
+        "etapa": "contato",
+        "rotulo": "Em contato",
+        "total": 14
+      },
+      {
+        "etapa": "proposta",
+        "rotulo": "Proposta",
+        "total": 9
+      },
+      {
+        "etapa": "negociacao",
+        "rotulo": "Negociação",
+        "total": 6
+      },
+      {
+        "etapa": "ganho",
+        "rotulo": "Venda ganha",
+        "total": 4
+      }
+    ],
+    "ganhos": 4,
+    "perdidos": 0,
+    "emAndamento": 16,
+    "conversao": 0.2,
+    "diasAteVenda": {
+      "media": 9,
+      "mediana": 8,
+      "amostras": 4
+    },
+    "receitaCoorteCentavos": 480050,
+    "vendasNoPeriodo": 5,
+    "vendidoCentavos": 600025,
+    "recebidoCentavos": 250000,
+    "evolucao": [
+      {
+        "chave": "2026-09-16",
+        "rotulo": "16/09",
+        "captados": 4,
+        "ganhos": 1,
+        "vendidoCentavos": 120000,
+        "recebidoCentavos": 0
+      },
+      {
+        "chave": "2026-09-23",
+        "rotulo": "23/09",
+        "captados": 5,
+        "ganhos": 1,
+        "vendidoCentavos": 100000,
+        "recebidoCentavos": 80000
+      },
+      {
+        "chave": "2026-09-30",
+        "rotulo": "30/09",
+        "captados": 4,
+        "ganhos": 1,
+        "vendidoCentavos": 140000,
+        "recebidoCentavos": 70000
+      },
+      {
+        "chave": "2026-10-07",
+        "rotulo": "07/10",
+        "captados": 5,
+        "ganhos": 2,
+        "vendidoCentavos": 240000,
+        "recebidoCentavos": 100000
+      },
+      {
+        "chave": "2026-10-14",
+        "rotulo": "14/10",
+        "captados": 2,
+        "ganhos": 0,
+        "vendidoCentavos": 0,
+        "recebidoCentavos": 0
+      }
+    ],
+    "porOrigem": [
+      {
+        "chave": "instagram",
+        "rotulo": "instagram",
+        "total": 8
+      },
+      {
+        "chave": "nao_identificada",
+        "rotulo": "Origem não identificada",
+        "total": 9
+      },
+      {
+        "chave": "google.com",
+        "rotulo": "google.com",
+        "total": 3
+      }
+    ],
+    "semCampanha": 19,
+    "canais": [
+      "instagram",
+      "site"
+    ]
+  },
+  "anterior": {
+    "periodo": {
+      "de": "2026-08-17",
+      "ate": "2026-09-15"
+    },
+    "resultados": {
+      "periodo": {
+        "de": "2026-08-17",
+        "ate": "2026-09-15",
+        "dias": 30
+      },
+      "agrupamento": "semana",
+      "captados": 16,
+      "porEtapa": {
+        "novo": 4,
+        "contatado": 4,
+        "negociacao": 4,
+        "fechou": 3,
+        "perdeu": 1
+      },
+      "funil": [
+        {
+          "etapa": "captado",
+          "rotulo": "Captado",
+          "total": 16
+        },
+        {
+          "etapa": "qualificado",
+          "rotulo": "Qualificado",
+          "total": 12
+        },
+        {
+          "etapa": "contato",
+          "rotulo": "Em contato",
+          "total": 11
+        },
+        {
+          "etapa": "proposta",
+          "rotulo": "Proposta",
+          "total": 8
+        },
+        {
+          "etapa": "negociacao",
+          "rotulo": "Negociação",
+          "total": 5
+        },
+        {
+          "etapa": "ganho",
+          "rotulo": "Venda ganha",
+          "total": 3
+        }
+      ],
+      "ganhos": 3,
+      "perdidos": 1,
+      "emAndamento": 12,
+      "conversao": 0.1875,
+      "diasAteVenda": {
+        "media": 9,
+        "mediana": 8,
+        "amostras": 4
+      },
+      "receitaCoorteCentavos": 360000,
+      "vendasNoPeriodo": 3,
+      "vendidoCentavos": 360000,
+      "recebidoCentavos": 120000,
+      "evolucao": [
+        {
+          "chave": "2026-08-17",
+          "rotulo": "17/08",
+          "captados": 4,
+          "ganhos": 1,
+          "vendidoCentavos": 120000,
+          "recebidoCentavos": 40000
+        }
+      ],
+      "porOrigem": [
+        {
+          "chave": "nao_identificada",
+          "rotulo": "Origem não identificada",
+          "total": 16
+        }
+      ],
+      "semCampanha": 19,
+      "canais": [
+        "instagram",
+        "site"
+      ]
+    }
+  },
+  "comparacao": {
+    "leads": {
+      "tipo": "percentual",
+      "valor": 25
+    },
+    "ganhos": {
+      "tipo": "percentual",
+      "valor": 33
+    },
+    "receitaCoorte": {
+      "tipo": "percentual",
+      "valor": 33
+    },
+    "vendido": {
+      "tipo": "percentual",
+      "valor": 67
+    },
+    "recebido": {
+      "tipo": "percentual",
+      "valor": 108
+    },
+    "conversaoPontos": {
+      "tipo": "pontos",
+      "valor": 1
+    }
+  },
+  "metas": [
+    {
+      "aplicacaoId": 2,
+      "aplicacao": "Aplicação de outubro",
+      "metodo": "Método Exemplo",
+      "status": "ativa",
+      "semCampanhas": false,
+      "metas": [
+        {
+          "indicador": "leads",
+          "rotulo": "Leads captados",
+          "alvo": 40,
+          "realizado": 20,
+          "pendencia": null
+        },
+        {
+          "indicador": "cliques",
+          "rotulo": "Cliques",
+          "alvo": 100,
+          "realizado": null,
+          "pendencia": "A coleta do site começou em 2026-10-05: os cliques cobrem só parte do período."
+        }
+      ]
+    }
+  ],
+  "site": {
+    "coleta": {
+      "ativa": true,
+      "inicio": "2026-10-05",
+      "parcial": true,
+      "observacao": "A coleta começou em 2026-10-05: o período pedido tem dados só a partir dessa data."
+    },
+    "acessos": {
+      "paginasVistas": 320,
+      "sessoes": 140,
+      "sessoesSignificam": "Sessões por dia: uma visita no navegador. Não são pessoas únicas; a mesma pessoa em dois dias ou aparelhos conta mais de uma vez."
+    },
+    "cliques": {
+      "total": 12,
+      "porAlvo": [
+        {
+          "alvo": "whatsapp",
+          "total": 9
+        },
+        {
+          "alvo": "ebook",
+          "total": 3
+        }
+      ]
+    },
+    "pais": {
+      "disponivel": true,
+      "fonte": "Cabeçalho de país da hospedagem (borda), não do navegador.",
+      "lista": [
+        {
+          "pais": "BR",
+          "paginasVistas": 300
+        }
+      ],
+      "paginasVistasSemPais": 20
+    }
+  },
+  "definicoes": {
+    "dia": "Todos os dias são do horário de Brasília (America/Sao_Paulo).",
+    "captado": "Lead captado no período: a data de ENTRADA do lead (primeira captura) cai no período. Testes e repetições (mesma pessoa, mesma empresa) não entram.",
+    "coorte": "Coorte do período: os leads captados no período, vistos como estão hoje. Captados, etapas, funil, ganhos, perdidos, em andamento, conversão, dias até a venda e receita da coorte falam só desses leads.",
+    "fechamento": "Fechamento (ganho): o lead está na etapa 'fechou' (jornada: 'ganho'). A data do fechamento é a data de venda registrada na jornada; leads antigos sem essa data contam como ganho na coorte, mas não entram nas vendas do período.",
+    "conversao": "Conversão: ganhos da coorte ÷ leads captados da coorte. Sem leads, não há conversão (nulo), nunca 0%.",
+    "receitaCoorte": "Receita da coorte: soma do valor de venda dos ganhos da coorte, mesmo que o fechamento tenha acontecido depois do período.",
+    "vendidoNoPeriodo": "Vendido no período: soma do valor das vendas FECHADAS dentro do período (pela data do fechamento), de qualquer lead, inclusive captado antes.",
+    "recebido": "Recebido: soma dos pagamentos registrados com data dentro do período (pela data de cada recebimento), de qualquer lead da empresa.",
+    "emAndamento": "Em andamento: captados que ainda não foram ganhos nem perdidos (novo, contatado ou em negociação). 'Em trabalho' é só contatado ou em negociação (sem os novos).",
+    "funil": "Funil: quantos leads da coorte chegaram a cada etapa da jornada (pela etapa mais avançada que já alcançaram; um lead perdido continua contado nas etapas por onde passou).",
+    "periodoAnterior": "Período anterior: o mesmo número de dias imediatamente antes (ou o mês anterior, até o mesmo dia, em 'este mês'). Variação só existe quando o período anterior tem base (> 0).",
+    "origem": "Origem do lead: a que o site registrou na primeira captura. Sem registro, 'Origem não identificada'; nenhuma origem é atribuída depois.",
+    "sessoes": "Sessões do site: visitas por dia no navegador. Não são pessoas únicas.",
+    "atualizacao": "Os números são calculados na hora, sobre os dados do Synergy One; a data do cálculo vem em calculadoEm."
+  }
+}

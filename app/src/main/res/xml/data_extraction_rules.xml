@@ -2,5 +2,9 @@
 <data-extraction-rules>
     <cloud-backup>
         <!-- Nenhuma credencial ou token deve ser incluído em backups/transferência de dispositivo. -->
+            <exclude domain="sharedpref" path="synergy_session.xml" />
     </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="synergy_session.xml" />
+    </device-transfer>
 </data-extraction-rules>

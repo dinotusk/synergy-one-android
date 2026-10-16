@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Só existe no build de debug (não entra no APK de release). Exportada para permitir
+             abrir pelo adb: adb shell am start -n br.com.synergyone.android/.ui.demo.DemoActivity -->
+        <activity
+            android:name=".ui.demo.DemoActivity"
+            android:exported="true"
+            android:theme="@style/Theme.SynergyOne" />
+    </application>
+</manifest>

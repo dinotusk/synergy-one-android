@@ -74,3 +74,106 @@ Esta especificação não define contrato HTTP do Termômetro. O backend ainda p
 - Cliques agregados por país não identificam pessoas. Só atribuir clique/campanha a um lead quando existir vínculo técnico verificável e coleta adequada; caso contrário, apresentar "Origem não identificada".
 - Documentar a regra de atribuição (primeiro/último contato), retenção, minimização de dados e deduplicação antes da integração.
 - Backend deve definir os contratos, autorização e auditoria. Esta atualização só registra requisitos: não cria endpoints, migrações nem telas.
+
+## Acessos e cliques: decisão de arquitetura (atualização de 15/10/2026)
+
+- O site da ForLife está no **Lovable**. A investigação e a integração da coleta de acessos e cliques são do
+  responsável pelo backend/web do Synergy One.
+- O app Android **só consome a API autenticada do Synergy One** (`/api/app/v1`). Não se conecta ao Lovable, ao n8n
+  nem a qualquer outra fonte, e não guarda segredo de nenhuma delas.
+- Enquanto a coleta não existir, `resultados.cliques.disponivel = false` e o app mostra o aviso da `pendencia`,
+  nunca zero.
+
+### Indicadores já exibidos (dados que a API entrega hoje)
+
+| Indicador | Campo da API | Tela |
+|---|---|---|
+| Leads, vendas, conversão | `totalLeads`, `ganhos`, `conversao` | Resultados |
+| Vendido, recebido, % recebido | `vendidoCentavos`, `recebidoCentavos` | Resultados |
+| Tempo até a venda (média, mediana), perdidas, em andamento | `diasAteVenda`, `perdidos`, `emAndamento` | Resultados |
+| Funil por etapa | `funil[]` | Resultados |
+| Evolução de leads captados | `evolucao[].captados` | Gráfico "Leads captados" |
+| Evolução de vendas ganhas | `evolucao[].ganhos` | Gráfico "Vendas ganhas" |
+| Evolução do valor vendido | `evolucao[].vendidoCentavos` | Gráfico "Valor vendido" |
+| Metas × realizado | `aplicacao.metas[]` | Metas |
+
+Gráficos só são desenhados com **dois ou mais pontos** reais; sem isso aparece o aviso, não uma linha inventada.
+
+### Dados que o backend precisa fornecer para os gráficos de acessos e cliques
+
+Proposta de bloco `cliques` em `ResultadosDto` (e no `GET /equipe/termometro`), **sem dados pessoais** (só contagens
+agregadas). O app passa a desenhar assim que `disponivel = true`:
+
+```json
+"cliques": {
+  "disponivel": true,
+  "atualizadoEm": "2026-10-15T12:00:00Z",
+  "fuso": "America/Sao_Paulo",
+  "definicao": "total | unico",
+  "serie": [
+    { "chave": "2026-10-01", "rotulo": "01/10",
+      "instagram": 0, "contato": 0, "site": 0 }
+  ],
+  "porPais": [ { "pais": "BR", "instagram": 0, "contato": 0, "site": 0 } ],
+  "porLink": [ { "linkId": "…", "tipo": "instagram|contato|site", "rotulo": "…", "total": 0 } ]
+}
+```
+
+Requisitos e decisões que dependem do **usuário** (não do Yuri) e do backend, ainda em aberto:
+1. Definição de clique: total ou único (e janela de unicidade) e o fuso do dia.
+2. Deduplicação (robôs, recarga, mesmo visitante) e fonte da coleta no Lovable.
+3. Identificação estável de cada link por empresa (`linkId`) e de qual empresa é cada clique.
+4. Histórico disponível (a partir de quando) e frequência de atualização (`atualizadoEm`).
+5. País desconhecido = "Não informado". Visitas ao site e cliques para o site são métricas **separadas**; não somar.
+6. Permissões: o cliente vê só a própria empresa; equipe conforme o papel. Sem IP nem identificação pessoal.
+7. Atribuir clique a lead só com vínculo técnico verificável; senão "Origem não identificada".
+
+Para **acessos** (visitas ao site) pede-se o mesmo formato (`acessos.serie`, `porPais`), com `definicao` própria
+(visita × sessão × visitante único).
+
+## Indicadores atuais do cliente (sem avaliação publicada): definições
+
+O cliente não tem rota de resultados ao vivo (`/equipe/resultados` é só da equipe). Por isso, fora de uma avaliação
+publicada, o app calcula os indicadores a partir de `GET /api/app/v1/leads`. Funciona para **qualquer empresa
+autorizada** do usuário (sem regra por empresa); o período é independente da avaliação.
+
+### Campos de `/leads` usados
+
+| Campo | Uso |
+|---|---|
+| `capturadoEm` (instante ISO) | base dos leads captados no período, funil, origem e gráfico de captação |
+| `etapa` | classificação atual (`ganho`, `perdido`, em andamento) |
+| `vendaFechadaEm` (`AAAA-MM-DD`) | **data real do fechamento**: base das vendas do período |
+| `vendaCentavos` | valor vendido (soma só o que existe; vendas sem valor são avisadas) |
+| `origem`, `canal` | origem real; "legado" nunca é exibido como canal; sem origem = "Origem não informada" |
+
+### Duas bases, nunca misturadas (mesma regra de `calcularResultados` do site)
+
+1. **Leads captados no período** (por `capturadoEm`): leads, já ganhos, perdidos, em andamento, funil, origem,
+   gráfico de captação e **conversão = ganhos desses leads ÷ leads captados no período**. O tempo até a venda
+   também é dos ganhos dessa coorte (captura → fechamento).
+2. **Vendas fechadas no período** (por `vendaFechadaEm`): quantidade, valor vendido e gráficos por data de
+   fechamento, **inclusive de leads captados antes do período**. Para não perder essas vendas, o app lê todos os
+   ganhos (`etapa=ganho`, sem `desde`) e filtra pela data de fechamento. Ganho sem `vendaFechadaEm` não entra em
+   nenhum período: aparece em aviso.
+
+A conversão **não** é "vendas do período ÷ leads do período".
+
+Diferença conhecida em relação ao site: o funil do site é acumulado (`etapaMaxima`), que `/leads` não entrega;
+no app o funil mostra a **etapa atual** de cada lead, com legenda explícita.
+
+Fuso: `America/Sao_Paulo` em todas as datas (captura convertida do instante UTC; fechamento já é data).
+
+### Limite de leitura e agregação no backend
+
+O app lê no máximo **10 páginas de 100 (1.000 registros)** por consulta. Se a lista não couber, **nenhum total,
+percentual ou gráfico é exibido** para aquele bloco, só o aviso da limitação (nunca números parciais como
+completos). **Dependência do backend:** para períodos longos e carteiras grandes, é preciso uma rota agregada para o
+cliente (ex.: `GET /api/app/v1/resultados?empresaId&desde&ate`, no formato de `/equipe/resultados`, e com `etapaMaxima`
+no funil), calculada no servidor com a mesma regra acima.
+
+### Títulos na interface
+
+- Equipe: **Resultados ao vivo do período** (calculado pelo servidor).
+- Cliente com avaliação: **Números congelados na publicação** (do momento da publicação).
+- Cliente sem avaliação ou em período livre: **Indicadores atuais do período**, com aviso "calculados agora, não congelados".

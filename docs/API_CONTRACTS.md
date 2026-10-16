@@ -1,3 +1,10 @@
+> **Atualização (15/10/2026):** o backend passou a oferecer a API dos apps em `/api/app/v1` (em
+> produção em `https://www.synergyecosystem.com.br`). O app agora usa **Supabase Auth só para login,
+> renovação e logout** e **`GET /api/app/v1/me`** para a checagem de acesso, como manda o contrato
+> oficial (`docs/MOBILE-AUTH.md` e `docs/API-APP.md` no repositório `synergy-one`). As consultas
+> diretas ao PostgREST descritas abaixo **não são mais usadas** pelo app; ficam como histórico das
+> regras de acesso e de renovação de sessão, que continuam valendo.
+
 # Contrato de autenticação — Synergy One Android
 
 > **Fonte:** código real de `dinotusk/synergy-one`, commit `b2ca4f8` (merge do PR #28, 2026-09-30).

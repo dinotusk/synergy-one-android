@@ -2,20 +2,23 @@ package br.com.synergyone.android.data.auth
 
 import br.com.synergyone.android.core.result.ApiResult
 import br.com.synergyone.android.data.auth.model.AuthenticatedUser
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Implementação provisória usada enquanto o endpoint de login não é confirmado com o backend.
- *
- * Deliberadamente NÃO simula sucesso: qualquer tentativa de login retorna erro explicando que a
- * integração está pendente. Quando o contrato em docs/API_CONTRACTS.md for validado com o time de
- * backend, substituir esta classe por uma implementação real (ex.: via Retrofit) sem alterar a
- * interface [AuthRepository] nem os consumidores (ViewModel/UI).
+ * Usado quando `supabase.url` / `supabase.anonKey` não estão configurados neste build.
+ * Deliberadamente NÃO simula sucesso.
  */
 class PendingAuthRepository : AuthRepository {
-    override suspend fun login(username: String, password: String): ApiResult<AuthenticatedUser> {
-        return ApiResult.Error(
-            message = "Integração com o backend ainda não configurada. Confirme o contrato em " +
-                "docs/API_CONTRACTS.md com o time de backend antes de habilitar o login real.",
+    override val currentUser: StateFlow<AuthenticatedUser?> = MutableStateFlow(null)
+
+    override suspend fun login(email: String, password: String): ApiResult<AuthenticatedUser> =
+        ApiResult.Error(
+            message = "Backend não configurado neste build. Defina supabase.url e supabase.anonKey " +
+                "em local.properties (ver README).",
         )
-    }
+
+    override suspend fun restoreSession(): AuthenticatedUser? = null
+    override suspend fun logout() = Unit
+    override suspend fun accessToken(rejected: String?): String? = null
 }

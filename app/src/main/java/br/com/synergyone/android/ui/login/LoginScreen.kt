@@ -54,8 +54,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.synergyone.android.R
 import br.com.synergyone.android.data.auth.model.UserRole
+import br.com.synergyone.android.ui.components.BrandMark
 import br.com.synergyone.android.ui.components.PasswordField
 import br.com.synergyone.android.ui.theme.SynergyOneTheme
+import br.com.synergyone.android.ui.theme.synergy
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -92,7 +94,7 @@ fun LoginScreen(
     onLoginClick: () -> Unit,
 ) {
     var logoVisible by remember { mutableStateOf(false) }
-    var showRecoveryNotice by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     val logoAlpha by animateFloatAsState(
         targetValue = if (logoVisible) 1f else 0f,
         animationSpec = tween(durationMillis = 420),
@@ -118,7 +120,7 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                BrandLogo(modifier = Modifier.alpha(logoAlpha))
+                BrandMark(modifier = Modifier.alpha(logoAlpha), size = 104.dp)
                 Spacer(modifier = Modifier.height(30.dp))
 
                 Card(
@@ -177,19 +179,11 @@ fun LoginScreen(
                         )
 
                         TextButton(
-                            onClick = { showRecoveryNotice = !showRecoveryNotice },
+                            // Recuperação pelo site (contrato MOBILE-AUTH §7): o app não chama /auth/v1/recover.
+                            onClick = { br.com.synergyone.android.ui.modules.WebLauncher.open(context, "/entrar") },
                             enabled = !uiState.isLoading,
                             modifier = Modifier.padding(top = 6.dp),
                         ) { Text(stringResource(R.string.login_forgot_password)) }
-
-                        if (showRecoveryNotice) {
-                            Text(
-                                text = stringResource(R.string.login_recovery_unavailable),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 12.dp),
-                            )
-                        }
 
                         if (uiState.errorMessage != null) {
                             Surface(
@@ -238,23 +232,15 @@ fun LoginScreen(
     }
 }
 
+/** "page-gradient" do site: brilho violeta no canto superior esquerdo e azul no direito. */
 @Composable
-private fun BrandLogo(modifier: Modifier = Modifier) {
-    Image(
-        painter = painterResource(R.drawable.logo_synergy),
-        contentDescription = stringResource(R.string.login_brand_mark_description),
-        contentScale = ContentScale.Fit,
-        modifier = modifier.fillMaxWidth().widthIn(max = 236.dp).height(92.dp),
+private fun loginBackground(): Brush {
+    val primary = MaterialTheme.colorScheme.primary
+    val info = MaterialTheme.synergy.info
+    return Brush.radialGradient(
+        colors = listOf(primary.copy(alpha = 0.16f), info.copy(alpha = 0.06f), MaterialTheme.colorScheme.background),
     )
 }
-
-@Composable
-private fun loginBackground(): Brush = Brush.radialGradient(
-    colors = listOf(
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
-        MaterialTheme.colorScheme.background,
-    ),
-)
 
 @Composable
 private fun loginTextFieldColors() = OutlinedTextFieldDefaults.colors(
