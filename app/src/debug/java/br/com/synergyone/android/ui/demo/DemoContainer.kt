@@ -9,6 +9,9 @@ import br.com.synergyone.android.data.auth.model.Papel
 import br.com.synergyone.android.data.auth.model.UserRole
 import br.com.synergyone.android.data.empresa.Empresa
 import br.com.synergyone.android.data.empresa.EmpresaRepository
+import br.com.synergyone.android.data.biblioteca.BibliotecaRepository
+import br.com.synergyone.android.data.indicadores.IndicadoresRepository
+import br.com.synergyone.android.data.indicadores.PeriodoIndicadores
 import br.com.synergyone.android.data.jornada.JornadaLocalizada
 import br.com.synergyone.android.data.jornada.JornadaRepository
 import br.com.synergyone.android.data.lead.LeadRepository
@@ -201,6 +204,36 @@ class DemoContainer(context: android.content.Context, private val demoUser: Auth
         }
         override suspend fun publicado(empresaId: Long?) = demo(if (vazio || semAvaliacao) TermometroClienteDto(EmpresaRefDto(3, "ForLife")) else DemoData.publicado)
         override suspend fun painelEquipe(empresaId: Long?, desde: String?, ate: String?) = demo(if (vazio) DemoData.equipe.copy(avaliacoes = emptyList(), resultados = ResultadosDto(), aplicacoes = emptyList()) else DemoData.equipe.copy(avaliacoes = avaliacoes.toList(), podeEditar = demoUser.canWrite, podePublicar = demoUser.isAdminOrManager))
+    }
+    override val indicadoresRepository = object : IndicadoresRepository {
+        override suspend fun indicadores(empresaId: Long?, periodo: PeriodoIndicadores) = demo(
+            if (vazio) IndicadoresDto(empresa = EmpresaRefDto(3, "ForLife"), calculadoEm = "2026-10-16T14:00:00.000Z", periodo = PeriodoCentralDto("2026-09-17", "2026-10-16", 30), atual = ResultadosCentraisDto(), site = SiteResumoDto(ColetaSiteDto(false, null, false, "A coleta ainda não recebeu nenhum evento.")))
+            else IndicadoresDto(
+                empresa = EmpresaRefDto(3, "ForLife"), calculadoEm = "2026-10-16T14:00:00.000Z", periodo = PeriodoCentralDto("2026-09-17", "2026-10-16", 30),
+                atual = ResultadosCentraisDto(
+                    periodo = PeriodoCentralDto("2026-09-17", "2026-10-16", 30), captados = 20, porEtapa = PorEtapaDto(6, 5, 5, 4, 0),
+                    funil = listOf(FunilDto("captado", "Captado", 20), FunilDto("contato", "Em contato", 14), FunilDto("negociacao", "Negociação", 9), FunilDto("ganho", "Ganho", 4)),
+                    ganhos = 4, perdidos = 0, emAndamento = 16, conversao = 0.2, diasAteVenda = DiasAteVendaDto(9.0, 8.0, 4),
+                    receitaCoorteCentavos = 480050, vendasNoPeriodo = 5, vendidoCentavos = 600025, recebidoCentavos = 250000,
+                    evolucao = listOf(EvolucaoDto("2026-09-17", "17/09", 4, 1, 120000, 0), EvolucaoDto("2026-09-24", "24/09", 6, 1, 150000, 50000), EvolucaoDto("2026-10-01", "01/10", 5, 2, 230025, 100000), EvolucaoDto("2026-10-08", "08/10", 5, 1, 100000, 100000)),
+                    porOrigem = listOf(OrigemIndicadorDto("instagram", "instagram", 8), OrigemIndicadorDto("nao_identificada", "Origem não identificada", 12)),
+                ),
+                comparacao = ComparacaoDto(leads = VariacaoDto("percentual", 25.0), vendido = VariacaoDto("percentual", 67.0), recebido = null),
+                site = SiteResumoDto(ColetaSiteDto(true, "2026-10-05", true, "A coleta começou em 2026-10-05: o período pedido tem dados só a partir dessa data."), AcessosSiteDto(320, 140, null), CliquesSiteDto(null, emptyList())),
+            ),
+        )
+    }
+    override val bibliotecaRepository = object : BibliotecaRepository {
+        override suspend fun pagina(empresaId: Long?, area: String?, cursor: String?, limite: Int) = demo(
+            BibliotecaPage(
+                if (vazio) emptyList() else listOf(
+                    MaterialDto(12, 3, "Guia da marca", "Manual de uso da marca.", "Marca", "PDF", "https://example.com/guia", null, "2026-10-14T15:00:00.000Z"),
+                    MaterialDto(11, 3, "Planilha de metas", null, "Comercial", "Planilha", "https://example.com/metas", null, "2026-10-10T12:00:00.000Z"),
+                    MaterialDto(9, 3, "Contrato padrão", "Modelo para revisão.", "Jurídico", "Link", null, null, "2026-09-30T09:00:00.000Z"),
+                ).filter { area == null || it.area == area },
+                3, null,
+            ),
+        )
     }
     override val leadRepository = object : LeadRepository {
         override fun cached(id: Long): LeadDto? = DemoData.leads.firstOrNull { it.id == id }

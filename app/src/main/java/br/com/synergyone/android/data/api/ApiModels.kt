@@ -270,3 +270,111 @@ data class AvaliacaoRequest(
 )
 
 @Serializable data class IdResponse(val id: Long = 0)
+
+// ── Indicadores centrais (`GET /indicadores`): calculados no servidor, o app não recalcula ────────
+
+/** Período dos indicadores: `de`/`ate` em `AAAA-MM-DD` (dias de Brasília) e `dias` corridos. */
+@Serializable data class PeriodoCentralDto(val de: String? = null, val ate: String? = null, val dias: Int? = null)
+
+@Serializable
+data class PorEtapaDto(val novo: Int = 0, val contatado: Int = 0, val negociacao: Int = 0, val fechou: Int = 0, val perdeu: Int = 0)
+
+@Serializable data class OrigemIndicadorDto(val chave: String = "", val rotulo: String = "", val total: Int = 0)
+
+@Serializable
+data class ResultadosCentraisDto(
+    val periodo: PeriodoCentralDto? = null,
+    val agrupamento: String? = null,
+    val captados: Int = 0,
+    val porEtapa: PorEtapaDto = PorEtapaDto(),
+    val funil: List<FunilDto> = emptyList(),
+    val ganhos: Int = 0,
+    val perdidos: Int = 0,
+    val emAndamento: Int = 0,
+    /** Fração 0–1; `null` sem leads (nunca 0%). */
+    val conversao: Double? = null,
+    val diasAteVenda: DiasAteVendaDto? = null,
+    val receitaCoorteCentavos: Long = 0,
+    val vendasNoPeriodo: Int = 0,
+    val vendidoCentavos: Long = 0,
+    val recebidoCentavos: Long = 0,
+    val evolucao: List<EvolucaoDto> = emptyList(),
+    val porOrigem: List<OrigemIndicadorDto> = emptyList(),
+)
+
+@Serializable data class PeriodoAnteriorDto(val periodo: PeriodoCentralDto? = null, val resultados: ResultadosCentraisDto? = null)
+
+/** `tipo` = `percentual` ou `pontos`. O objeto inteiro `null` = sem base para comparar. */
+@Serializable data class VariacaoDto(val tipo: String = "percentual", val valor: Double = 0.0)
+
+@Serializable
+data class ComparacaoDto(
+    val leads: VariacaoDto? = null,
+    val ganhos: VariacaoDto? = null,
+    val receitaCoorte: VariacaoDto? = null,
+    val vendido: VariacaoDto? = null,
+    val recebido: VariacaoDto? = null,
+    val conversaoPontos: VariacaoDto? = null,
+)
+
+@Serializable
+data class MetasAplicacaoDto(
+    val aplicacaoId: Long = 0,
+    val aplicacao: String = "",
+    val metodo: String? = null,
+    val status: String? = null,
+    val semCampanhas: Boolean = false,
+    val metas: List<MetaDto> = emptyList(),
+)
+
+@Serializable
+data class ColetaSiteDto(val ativa: Boolean = false, val inicio: String? = null, val parcial: Boolean = false, val observacao: String? = null)
+
+@Serializable data class AcessosSiteDto(val paginasVistas: Long? = null, val sessoes: Long? = null, val sessoesSignificam: String? = null)
+@Serializable data class CliqueAlvoDto(val alvo: String = "", val total: Long = 0)
+@Serializable data class CliquesSiteDto(val total: Long? = null, val porAlvo: List<CliqueAlvoDto> = emptyList())
+
+@Serializable
+data class SiteResumoDto(
+    val coleta: ColetaSiteDto? = null,
+    val acessos: AcessosSiteDto? = null,
+    val cliques: CliquesSiteDto? = null,
+)
+
+@Serializable
+data class IndicadoresDto(
+    val versaoDefinicoes: String? = null,
+    val empresa: EmpresaRefDto? = null,
+    val fuso: String? = null,
+    /** Instante (UTC) em que o servidor calculou: é a "atualização" mostrada na tela. */
+    val calculadoEm: String? = null,
+    val periodo: PeriodoCentralDto? = null,
+    val atual: ResultadosCentraisDto = ResultadosCentraisDto(),
+    val anterior: PeriodoAnteriorDto? = null,
+    val comparacao: ComparacaoDto? = null,
+    val metas: List<MetasAplicacaoDto> = emptyList(),
+    val site: SiteResumoDto? = null,
+)
+
+// ── Biblioteca (`GET /biblioteca`): somente leitura ─────────────────────────────────────────────
+
+@Serializable
+data class MaterialDto(
+    val id: Long,
+    val empresaId: Long? = null,
+    val titulo: String = "",
+    val descricao: String? = null,
+    val area: String? = null,
+    val tipo: String? = null,
+    /** Link externo HTTPS cadastrado pela equipe (ex.: Drive). Não é arquivo do Synergy One. */
+    val url: String? = null,
+    val capaUrl: String? = null,
+    val atualizadoEm: String? = null,
+    // Só a equipe recebe os três abaixo; nunca o cliente.
+    val empresaNome: String? = null,
+    val visivelCliente: Boolean? = null,
+    val origem: String? = null,
+)
+
+@Serializable
+data class BibliotecaPage(val itens: List<MaterialDto> = emptyList(), val total: Int = 0, val proximoCursor: String? = null)

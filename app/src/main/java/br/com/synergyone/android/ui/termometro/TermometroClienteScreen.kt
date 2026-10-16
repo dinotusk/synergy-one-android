@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.dp
 import br.com.synergyone.android.data.api.AvaliacaoPublicadaDto
 import br.com.synergyone.android.data.api.TermometroClienteDto
 import br.com.synergyone.android.data.auth.model.AuthenticatedUser
-import br.com.synergyone.android.data.lead.LeadRepository
+import br.com.synergyone.android.data.indicadores.IndicadoresRepository
+import br.com.synergyone.android.data.indicadores.PeriodoIndicadores
 import br.com.synergyone.android.data.termometro.TermometroRepository
 import br.com.synergyone.android.ui.common.InfoNote
 import br.com.synergyone.android.ui.common.LoadState
@@ -35,7 +36,6 @@ import br.com.synergyone.android.ui.common.formatDate
 import br.com.synergyone.android.ui.common.formatPeriod
 import br.com.synergyone.android.ui.common.formatPeriodShort
 import br.com.synergyone.android.ui.common.PullRefresh
-import br.com.synergyone.android.data.lead.captadosDesde
 import br.com.synergyone.android.ui.common.rememberLoader
 import br.com.synergyone.android.ui.components.AppTopBar
 import br.com.synergyone.android.ui.components.SectionTitle
@@ -49,7 +49,7 @@ import br.com.synergyone.android.ui.components.SynergyCard
 @Composable
 fun TermometroClienteScreen(
     repository: TermometroRepository,
-    leadRepository: LeadRepository,
+    indicadoresRepository: IndicadoresRepository,
     user: AuthenticatedUser,
     onAccount: () -> Unit,
     onSignIn: () -> Unit,
@@ -76,10 +76,11 @@ fun TermometroClienteScreen(
     val intervalo = livre ?: periodPresets()[1]
     val empresaEfetiva = empresaId ?: dados?.empresa?.id ?: user.empresas.firstOrNull()?.id
 
-    val coorte = if (modoLeads) rememberLoader("ind-coorte-$empresaEfetiva-${intervalo.desde}") { leadRepository.captadosDesde(empresaEfetiva, intervalo.desde) } else null
-    val ganhosLoader = if (modoLeads) rememberLoader("ind-ganhos-$empresaEfetiva") { leadRepository.captadosDesde(empresaEfetiva, desde = null, etapa = "ganho") } else null
+    val indicadores = if (modoLeads) rememberLoader("indicadores-$empresaEfetiva-${intervalo.preset ?: "${intervalo.desde}-${intervalo.ate}"}") {
+        indicadoresRepository.indicadores(empresaEfetiva, PeriodoIndicadores(preset = intervalo.preset, de = intervalo.desde, ate = intervalo.ate))
+    } else null
 
-    PullRefresh(listOfNotNull(loader, coorte, ganhosLoader), modifier = modifier.fillMaxSize()) {
+    PullRefresh(listOfNotNull(loader, indicadores), modifier = modifier.fillMaxSize()) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -105,9 +106,7 @@ fun TermometroClienteScreen(
         LoadStateContent(state, onRetry = loader::reload, onSignIn = onSignIn) { d ->
             if (modoLeads) SemAvaliacaoNote(d, livre != null) else PublicadoContent(d, selecionada, onSelect = { avaliacaoId = it; livre = null })
         }
-        if (coorte != null && ganhosLoader != null) {
-            IndicadoresAtuais(coorte, ganhosLoader, intervalo, onSignIn)
-        }
+        if (indicadores != null) IndicadoresAtuais(indicadores, onSignIn)
     }
     }
 
@@ -124,8 +123,8 @@ fun TermometroClienteScreen(
 }
 
 private val PeriodRangeSaver = androidx.compose.runtime.saveable.Saver<PeriodRange?, List<String>>(
-    save = { it?.let { r -> listOf(r.label, r.desde, r.ate) } ?: emptyList() },
-    restore = { if (it.size == 3) PeriodRange(it[0], it[1], it[2]) else null },
+    save = { it?.let { r -> listOf(r.label, r.desde, r.ate, r.preset.orEmpty()) } ?: emptyList() },
+    restore = { if (it.size == 4) PeriodRange(it[0], it[1], it[2], it[3].ifEmpty { null }) else null },
 )
 
 @Composable
@@ -133,7 +132,7 @@ private fun SemAvaliacaoNote(dados: TermometroClienteDto, periodoLivre: Boolean)
     if (periodoLivre && dados.atual != null) return
     InfoNote(
         "Ainda sem avaliação publicada",
-        "A equipe ainda não publicou a avaliação do Termômetro desta empresa. Abaixo estão os indicadores atuais dos seus leads, que podem ser vistos em qualquer período.",
+        "A equipe ainda não publicou a avaliação do Termômetro desta empresa. Abaixo estão os indicadores atuais, calculados no servidor, que podem ser vistos em qualquer período.",
     )
 }
 

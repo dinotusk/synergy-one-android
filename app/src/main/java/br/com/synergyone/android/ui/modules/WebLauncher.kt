@@ -13,8 +13,13 @@ import br.com.synergyone.android.BuildConfig
 object WebLauncher {
     fun url(path: String): String = BuildConfig.API_BASE_URL.trimEnd('/') + "/" + path.trimStart('/')
 
-    fun open(context: Context, path: String) {
-        val uri = url(path).toUri()
+    fun open(context: Context, path: String) = launch(context, url(path))
+
+    /** Link absoluto de um material (já validado como HTTPS por `linkSeguro`). Nunca leva token. */
+    fun openAbsolute(context: Context, https: String) = launch(context, https)
+
+    private fun launch(context: Context, url: String) {
+        val uri = url.toUri()
         try {
             CustomTabsIntent.Builder().setShowTitle(true).build().launchUrl(context, uri)
         } catch (_: Exception) {

@@ -67,6 +67,7 @@ fun TeamHomeScreen(container: AppContainer, user: AuthenticatedUser, nav: AppNav
                             NativeTab.Termometro -> select(0)
                             NativeTab.Clientes -> { segment = 0; select(1) }
                             NativeTab.Leads -> { segment = 1; select(1) }
+                            NativeTab.Biblioteca -> nav.openBiblioteca()
                         }
                     },
                 )

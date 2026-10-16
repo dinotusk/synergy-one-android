@@ -32,6 +32,7 @@ import br.com.synergyone.android.ui.components.BrandMark
 import br.com.synergyone.android.ui.conta.ContaScreen
 import br.com.synergyone.android.ui.empresas.EmpresaFichaScreen
 import br.com.synergyone.android.ui.common.LocalDataFreshness
+import br.com.synergyone.android.ui.biblioteca.BibliotecaScreen
 import br.com.synergyone.android.ui.leads.LeadDetailScreen
 import br.com.synergyone.android.ui.leads.LeadDetalheClienteScreen
 import br.com.synergyone.android.ui.leads.LeadsScreen
@@ -68,6 +69,7 @@ fun SynergyNavGraph(
     val nav = remember(navController, context) {
         object : AppNavigator {
             override fun openPerfil() = navController.navigate(NavRoutes.PERFIL)
+            override fun openBiblioteca() = navController.navigate(NavRoutes.BIBLIOTECA)
             override fun openEmpresa(id: Long) = navController.navigate(NavRoutes.empresa(id))
             override fun openLead(id: Long) = navController.navigate(NavRoutes.lead(id))
             override fun openLeadsDaEmpresa(id: Long) = navController.navigate(NavRoutes.empresaLeads(id))
@@ -113,6 +115,9 @@ fun SynergyNavGraph(
         composable(NavRoutes.CLIENT_HOME) { Authed { ClientHomeScreen(container, it, nav, logout) } }
 
         composable(NavRoutes.PERFIL) { Authed { ContaScreen(it, logout, container.themeSettings, onBack = nav::back) } }
+        composable(NavRoutes.BIBLIOTECA) {
+            Authed { BibliotecaScreen(container.bibliotecaRepository, it, onAccount = nav::openPerfil, onSignIn = logout, onBack = nav::back) }
+        }
         composable(NavRoutes.EMPRESA, idArg) { e -> Authed { EmpresaFichaScreen(e.id(), it, container, nav, logout) } }
         composable(NavRoutes.EMPRESA_LEADS, idArg) { e ->
             Authed {
@@ -134,7 +139,7 @@ fun SynergyNavGraph(
                 if (it.role == UserRole.TEAM) {
                     TermometroEquipeScreen(container.termometroRepository, it, nav::openPerfil, logout, fixedEmpresaId = e.id(), onBack = nav::back)
                 } else {
-                    TermometroClienteScreen(container.termometroRepository, container.leadRepository, it, nav::openPerfil, logout, fixedEmpresaId = e.id(), onBack = nav::back)
+                    TermometroClienteScreen(container.termometroRepository, container.indicadoresRepository, it, nav::openPerfil, logout, fixedEmpresaId = e.id(), onBack = nav::back)
                 }
             }
         }

@@ -39,7 +39,7 @@ sealed interface ModuleTarget {
     data class Web(val path: String) : ModuleTarget
 }
 
-enum class NativeTab { Termometro, Clientes, Leads }
+enum class NativeTab { Termometro, Clientes, Leads, Biblioteca }
 
 data class AppModule(
     val id: String,
@@ -85,7 +85,7 @@ object ModuleCatalog {
         web("inbox", "Caixa de entrada", "Prioridades de tarefas, entregas, leads e contratos.", ModuleCategory.Inteligencia, ModuleAccess.Membro, "/inbox"),
         web("sni", "Estratégia e narrativas", "Pilares, pautas e alertas estratégicos.", ModuleCategory.Inteligencia, ModuleAccess.Membro, "/sni"),
 
-        web("biblioteca", "Biblioteca", "Documentos, links e materiais da operação.", ModuleCategory.Conteudo, ModuleAccess.Membro, "/biblioteca"),
+        native("biblioteca", "Biblioteca", "Materiais da operação e dos clientes (somente leitura; cadastro no site).", ModuleCategory.Conteudo, ModuleAccess.Membro, NativeTab.Biblioteca),
 
         web("gestao", "Visão da gestão", "Indicadores de gestão da operação.", ModuleCategory.Gestao, ModuleAccess.Admin, "/gestao"),
         web("financeiro", "Financeiro", "Contratos, despesas e custos da equipe.", ModuleCategory.Gestao, ModuleAccess.Admin, "/financeiro"),
@@ -104,7 +104,7 @@ object ModuleCatalog {
         web("midias", "Mídias e relatórios", "Desempenho das suas redes sociais.", ModuleCategory.Conteudo, ModuleAccess.Cliente, "/cliente", modulo = "midias"),
         web("concorrentes", "Concorrentes", "Acompanhamento de concorrentes.", ModuleCategory.Inteligencia, ModuleAccess.Cliente, "/cliente", modulo = "concorrentes"),
         web("api-webhooks", "API e webhooks", "Integração do seu site com a Synergy.", ModuleCategory.Configuracoes, ModuleAccess.Cliente, "/cliente/configuracoes", modulo = "api"),
-        web("biblioteca", "Biblioteca", "Materiais liberados para a sua empresa.", ModuleCategory.Conteudo, ModuleAccess.Cliente, "/cliente"),
+        native("biblioteca", "Biblioteca", "Materiais liberados para a sua empresa.", ModuleCategory.Conteudo, ModuleAccess.Cliente, NativeTab.Biblioteca),
         web("configuracoes", "Configurações da empresa", "Empresa, equipe, captação, alertas e segurança.", ModuleCategory.Configuracoes, ModuleAccess.Cliente, "/cliente/configuracoes"),
     )
 

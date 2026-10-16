@@ -7,6 +7,7 @@ object NavRoutes {
     const val TEAM_HOME = "team_home"
     const val CLIENT_HOME = "client_home"
     const val PERFIL = "perfil"
+    const val BIBLIOTECA = "biblioteca"
 
     const val ARG_ID = "id"
     const val EMPRESA = "empresa/{$ARG_ID}"

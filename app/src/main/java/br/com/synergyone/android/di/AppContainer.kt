@@ -8,6 +8,10 @@ import br.com.synergyone.android.data.auth.SupabaseAuthRepository
 import br.com.synergyone.android.data.api.AppApi
 import br.com.synergyone.android.data.api.AppApiClient
 import br.com.synergyone.android.data.api.OkHttpAppApi
+import br.com.synergyone.android.data.biblioteca.ApiBibliotecaRepository
+import br.com.synergyone.android.data.biblioteca.BibliotecaRepository
+import br.com.synergyone.android.data.indicadores.ApiIndicadoresRepository
+import br.com.synergyone.android.data.indicadores.IndicadoresRepository
 import br.com.synergyone.android.data.empresa.ApiEmpresaRepository
 import br.com.synergyone.android.data.freshness.DataFreshness
 import br.com.synergyone.android.data.empresa.EmpresaRepository
@@ -28,6 +32,8 @@ interface AppContainer {
     val termometroRepository: TermometroRepository
     val leadRepository: LeadRepository
     val jornadaRepository: JornadaRepository
+    val indicadoresRepository: IndicadoresRepository
+    val bibliotecaRepository: BibliotecaRepository
     val themeSettings: ThemeSettings
 
     /** Marca dados lidos como velhos após gravações e decide quando atualizar ao reabrir telas. */
@@ -65,6 +71,8 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     override val termometroRepository: TermometroRepository by lazy { ApiTermometroRepository(client) }
     override val leadRepository: LeadRepository by lazy { ApiLeadRepository(client) }
     override val jornadaRepository: JornadaRepository by lazy { ApiJornadaRepository(client) }
+    override val indicadoresRepository: IndicadoresRepository by lazy { ApiIndicadoresRepository(client) }
+    override val bibliotecaRepository: BibliotecaRepository by lazy { ApiBibliotecaRepository(client) }
     override val themeSettings: ThemeSettings by lazy { ThemeSettings(context) }
 
     override fun clearSessionData() {
