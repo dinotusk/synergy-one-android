@@ -100,9 +100,35 @@ Tudo abaixo foi no moto g53, build **debug**, com **dados de demonstração** (n
 5. TalkBack ligado: cabeçalho → abas ("Termômetro, guia, selecionada") → filtros (selecionado/não) → gráfico (descrição) →
    folha "Período" e diálogo "Sair" (o foco deve ir para o título ao abrir e voltar ao botão que abriu ao fechar).
 
+## Terceira rodada (verificação após reescrita do histórico)
+
+**Medido** no commit `106c30f` (histórico reescrito só para tirar a linha de coautoria; o conteúdo dos arquivos não mudou):
+- 87 testes unitários, 0 falhas; `assembleDebug` ok; lint com 0 erros.
+- Lint caiu de 30 para 12 avisos. Corrigidos 18: 10 recursos sem uso (cores e textos de telas antigas) e 8 de estilo KTX
+  (`toUri()`, `prefs.edit {}`), sem mudança de comportamento.
+- Avisos restantes, deliberadamente não tratados:
+  - 7 de versão de dependência/Gradle (`NewerVersionAvailable`, `GradleDependency`, `AndroidGradlePluginVersion`): atualizar
+    exige validar contra o app inteiro; fora desta etapa.
+  - 1 `OldTargetApi`: subir o `targetSdk` muda comportamento do sistema; é decisão separada.
+  - 3 `ModifierParameter` (`DateField`, `MoneyField`, `ScreenHeader`): só convenção de ordem de parâmetros.
+
+**Não validado nesta rodada** (o aparelho não estava conectado ao adb e não há credenciais de teste no ambiente):
+- Percurso com contas reais de equipe e cliente (login e restauração de sessão, troca de empresa, períodos, atualização
+  manual, falha de rede, logout e entrada com outra conta). Roteiro acima.
+- TalkBack de ouvido, e as capturas faltantes (erro/vazio no escuro 2×; folhas de avaliação/recebimento com teclado).
+- Desempenho em build otimizado. O `release` atual tem `isMinifyEnabled = false` e não tem assinatura configurada, então não
+  é um build otimizado de verdade; a demonstração só existe no debug. Ligar R8 mexe na configuração de build e precisa ser
+  testado no aparelho (regras de serialização), então não foi alterado. Medir no release exige entrar com conta real.
+
+## Dependência do backend: indicadores
+A API central de indicadores está em revisão no backend. O app **não amplia os cálculos locais** a partir de `GET /leads`
+(teto de 1.000 registros, funil pela etapa atual). A integração será feita depois do contrato final e da disponibilização
+do endpoint; até lá, a Home do cliente continua com o comportamento descrito acima, inclusive o aviso quando passa do teto.
+
 ## O que ainda falta
 - Validação com contas reais (itens acima) e conferência auditiva com TalkBack.
 - Capturas faltantes da seção 2 e das folhas de avaliação/recebimento com teclado.
 - Medição de desempenho em build release e com dados reais; investigar o p99 de 150 ms na primeira composição de cada aba.
 - Canais de contato em "Ajuda e privacidade": só existem as páginas de termos e privacidade.
-- 30 avisos de lint (0 erros) anteriores a esta etapa, não tratados aqui.
+- 12 avisos de lint restantes (ver terceira rodada).
+- Integração dos indicadores com o endpoint do backend, quando o contrato final existir.
