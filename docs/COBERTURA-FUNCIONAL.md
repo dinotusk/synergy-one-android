@@ -1,9 +1,63 @@
 # Cobertura funcional: site × app Android
 
-> **Data do inventário:** 15/10/2026 · **Fonte do site:** `origin/main` de `SynergyEcosystem/synergy-one`
-> (14 commits à frente do checkout local; inclui a unificação de leads e a home do cliente).
-> **API do app:** `docs/API-APP.md` e `docs/MOBILE-AUTH.md` do site. **Nada foi validado com contas reais
-> de teste** (nem pelo backend, nem por mim: ver "Validação" no fim).
+> **Inventário de 16/10/2026** · **Backend comparado:** `origin/main` de `SynergyEcosystem/synergy-one` no commit `f4f62c6`
+> (`docs/API-APP.md`, `docs/SITE-COLETA.md` e as rotas em `src/routes/api.app.v1.*`) · **Produção testada sem login** em
+> `www.synergyecosystem.com.br` só para saber se a rota existe (404 = não publicada, 401 = publicada).
+> **Nada aqui foi validado com contas de teste de equipe**; a conta de cliente real foi usada só para leitura (ver `ACABAMENTO.md`).
+
+## Classes
+
+| Classe | Significado |
+|---|---|
+| **A. Nativo e funcional** | Funciona dentro do app, com API real e as permissões do servidor |
+| **B. API existente, integração pendente** | Há rota no contrato, mas o app ainda não a usa (ou ela ainda não está publicada) |
+| **C. Sem API** | O backend não tem rota `/api/app/v1`; depende do backend. **Link para o site não conta como módulo nativo** |
+| **D. Só pelo site** | Abre no navegador (rótulo "Na web"/"Site" no app); o login do site é separado |
+
+## Visão do cliente (prioridade)
+
+| Módulo | Classe | Backend hoje | O que o app faz | Próximo passo |
+|---|---|---|---|---|
+| Termômetro publicado (avaliação, metas, congelados) | **A** | `GET /termometro` (publicado) | Nativo | Validar com mais contas |
+| Indicadores do período (leads, ganhos, conversão, funil, origem) | **A, provisório** | `GET /leads` (o app calcula) e, **novo**, `indicadores` em `GET /termometro` sem avaliação | Cálculo local com teto de 1.000 leads | **Em revisão no backend**: integrar só após contrato final e endpoint; não ampliar o cálculo local |
+| Acessos e cliques do site | **B** | `GET /site/metricas`, no `main` do backend e **404 em produção** (não publicada) | Aviso "Cliques ainda indisponíveis" | Integração por etapas (abaixo): modelos, repositório e seção; só aparece com dados |
+| Leads (lista e detalhe) | **A** | `GET /leads` | Nativo, origem real, "Entrou N×" | Filtro por período e busca (API aceita `desde`) |
+| Entregas (playbook de 30 dias) | **C** | Nenhuma rota; no site vem de server function interna (`cliente.entregas`) | Aba explica e abre `/cliente/entregas` (**Site**) | Pedido ao backend, item 3 |
+| Biblioteca (materiais liberados) | **C** | Nenhuma; o site filtra `visivelCliente` em server function | **Site** (`/cliente`) | Pedido ao backend, item 4 |
+| Mídias e relatórios | **C** | Nenhuma | **Site**, só se a empresa tem o módulo `midias` | Pedido ao backend, item 5 |
+| Agenda | **C**, sem versão para cliente | Nenhuma; `/agenda` do site é da **equipe**, não há página de agenda para cliente | Não aparece para o cliente | **Decisão de produto**: cliente verá agenda? (item 6) |
+| Atendimento | **C**, sem versão para cliente | Nenhuma; `/atendimento` é da **equipe** | Não aparece para o cliente | **Decisão de produto** (item 6) |
+| Pré-análise, Concorrentes, API e webhooks, Configurações da empresa | **D** | Nenhuma | **Site**, respeitando `empresa.modulos` | Fora do escopo desta etapa |
+| Conta (perfil, tema, sair, recuperar senha, termos) | **A** / **D** | `GET /me`; recuperação e termos abrem o site | Nativo; senha e legais abrem o navegador | n/a |
+
+## Visão da equipe
+
+| Módulo | Classe | Backend hoje | O que o app faz |
+|---|---|---|---|
+| Termômetro (resultados ao vivo, avaliações, publicar) | **A** | `GET /equipe/termometro`, `POST/PUT …/avaliacoes`, `…/publicar` | Nativo, com `podeEditar`/`podePublicar` |
+| Empresas e ficha | **A** (parcial) | `GET /empresas`, `/termometro`, `/leads` | Lista, ficha e leads; carteira/Cliente 360 completos só no site |
+| Leads e vendas, jornada, notas, recebimentos | **A** | `GET /leads`, `/equipe/jornada*`, `PUT`, `POST …/notas`, `…/recebimentos` | Nativo |
+| Acessos e cliques do site (por empresa) | **B** | `GET /site/metricas` (não publicada) | Aviso; seção após publicação |
+| Atendimento, Agenda, Projetos e entregas, Biblioteca, Métodos, Meu dia, Inbox, A.U.R.A., SNI, Plataformas/Instagram/YouTube | **C** (aparecem como **D**) | Nenhuma | "Na web": abre o site; não é módulo nativo |
+| Gestão, Financeiro, Equipe, Sistemas e automações, API e chaves, Configurações | **C** (aparecem como **D**) | Nenhuma | "Na web" |
+
+## Detalhes da rota nova: `GET /api/app/v1/site/metricas`
+Parâmetros `empresaId`, `siteId`, `de`, `ate` (`AAAA-MM-DD`, máx. 366 dias) e `agrupar=dia|total`; sem datas, últimos 30 dias em
+Brasília. Erros: 404 empresa/site que a pessoa não vê, 422 parâmetros, 403 sem cadastro, 503 leitura indisponível. Mesma
+autenticação e isolamento por empresa. Regras que o app respeita: `null` = **sem dado** (nunca zero); sessões não são pessoas
+únicas; mostrar `coleta.observacao` quando `parcial`; "Origem não identificada" exatamente como vem; não existe "leads por
+clique"; `pais.disponivel=false` → "indisponível". **A coleta ainda não recebe dados**: nenhum workflow do n8n foi alterado e os
+leads atuais seguem "Origem não identificada" (`SITE-COLETA.md`, seção 6).
+
+## Solicitação objetiva ao backend (sem inventar endpoints)
+Detalhe e formato em `docs/PEDIDOS-BACKEND.md`. Resumo:
+1. **Publicar** `GET /site/metricas` (404 em produção) e confirmar a unidade de `vendas.valor` (reais ou centavos).
+2. **Indicadores do cliente**: contrato final e endpoint (inclui `etapaMaxima` para o funil acumulado); dizer se `indicadores` em `/termometro` substitui o cálculo local.
+3. **Entregas do cliente**: `GET /cliente/entregas` (somente leitura, RLS do cliente) com etapa, andamento e prazo.
+4. **Biblioteca do cliente**: `GET /biblioteca` só com `visivelCliente`, com título, tipo, link/arquivo e data.
+5. **Mídias e relatórios do cliente**: `GET /midias` e relatórios (métricas por rede) por empresa, respeitando `modulos.midias`.
+6. **Agenda e Atendimento do cliente**: decisão de produto sobre existirem para o cliente; se sim, `GET /agenda` e `GET /atendimento` (chamados abertos pela empresa).
+7. `GET /equipe/jornada/{id}` devolver estado e contato do lead; endpoints da equipe para os módulos "Na web" conforme a prioridade.
 
 ## Como ler
 
@@ -22,7 +76,7 @@
 
 ## Rotas de API disponíveis
 
-`GET /me`, `/empresas`, `/leads`, `/termometro` (todos os perfis) · `GET /equipe/jornada`, `/equipe/jornada/{id}`,
+`GET /me`, `/empresas`, `/leads`, `/termometro`, `/site/metricas` (todos os perfis; `/site/metricas` ainda não publicada em produção) · `GET /equipe/jornada`, `/equipe/jornada/{id}`,
 `/equipe/resultados`, `/equipe/termometro` (equipe) · `PUT /equipe/jornada/{id}`, `POST …/notas`, `POST …/recebimentos`,
 `POST/PUT /equipe/termometro/avaliacoes`, `POST …/{id}/publicar` (equipe com escrita; publicar = admin/gestão).
 
@@ -103,9 +157,9 @@
 | Recurso | Perfil/permissão | API existente | Android hoje | Pendente |
 |---|---|---|---|---|
 | Perfil (nome, e-mail, papel, empresas) | próprio | `GET /me` | Leitura em "Perfil e configurações" (avatar e Mais) | Editar perfil: **backend** |
-| Aparência (claro/escuro) | local | n/a | Funciona (padrão escuro) | n/a |
+| Aparência (escuro/claro/sistema) | local | n/a | Funciona (padrão escuro) | n/a |
 | Sair | próprio | Supabase Auth (`logout`) | Funciona | n/a |
-| Recuperar senha | público | n/a (web) | Aviso na tela de login | Abrir `/entrar` no navegador (contrato do backend) — ainda não feito |
+| Recuperar senha | público | n/a (web) | Abre `/entrar` no navegador (login e Configurações) | n/a |
 | Alterar senha, sair de todos os dispositivos | próprio | **Nenhuma** | Não existe | **Backend** (não contornar a checagem do site) |
 | Alertas/notificações (preferências) | próprio | **Nenhuma** | Não existe | **Backend** |
 | Equipe e permissões, convites, perfil da Synergy, auditoria | `administrador` | **Nenhuma** | Não existe | **Backend** |
