@@ -6,6 +6,6 @@ import br.com.synergyone.android.BuildConfig
 /** Medições de desempenho, só em build debug (`adb logcat -s SynergyPerf`). Sem token, query nem corpo. */
 object PerfLog {
     fun d(message: String) {
-        if (BuildConfig.DEBUG) runCatching { Log.d("SynergyPerf", message) }
+        if (BuildConfig.PERF_LOG) runCatching { Log.d("SynergyPerf", message) }
     }
 }

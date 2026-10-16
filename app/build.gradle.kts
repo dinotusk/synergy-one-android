@@ -34,9 +34,25 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "PERF_LOG", "true")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            buildConfigField("boolean", "PERF_LOG", "false")
+        }
+        // Só para MEDIR desempenho: R8 e recursos reduzidos como num release otimizado, mas assinado com a chave de debug
+        // (a assinatura de publicação não existe aqui e não é tocada). Mesmo applicationId do debug: instala por cima e
+        // mantém a sessão para medir sem pedir login. Nunca publicar este tipo.
+        create("medicao") {
+            initWith(getByName("release"))
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = false
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
+            buildConfigField("boolean", "PERF_LOG", "true")
         }
     }
 

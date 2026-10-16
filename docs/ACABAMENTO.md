@@ -132,9 +132,28 @@ Tudo abaixo foi no moto g53, build **debug**, com **dados de demonstração** (n
 - Conta de **equipe** real, troca de empresa (a conta de cliente testada só tem uma), troca de período em dados reais,
   logout e entrada com outra conta sem restos da anterior: precisam das credenciais do responsável.
 - TalkBack de ouvido; folha de recebimento com teclado (precisa de um lead ganho de teste).
-- Desempenho em build otimizado. O `release` atual tem `isMinifyEnabled = false` e não tem assinatura configurada, então não
-  é um build otimizado de verdade; a demonstração só existe no debug. Ligar R8 mexe na configuração de build e precisa ser
-  testado no aparelho (regras de serialização), então não foi alterado. Medir no release exige entrar com conta real.
+- Troca de empresa (a conta de cliente testada só tem uma), troca de período com dados de equipe e logout entre contas (ver roteiro abaixo).
+
+## Desempenho: debug × build otimizado [medido]
+Perfil `medicao` (`./gradlew assembleMedicao`): R8 + redução de recursos, `isDebuggable = false`, assinado com a **chave de
+debug** (a assinatura de publicação não existe no projeto e não foi tocada). Mesmo `applicationId` do debug, então instala por
+cima e mantém a sessão. **Nunca publicar este tipo.** O `release` continua sem R8 e sem alteração. `PERF_LOG` (log
+`SynergyPerf`, sem token/corpo/query) fica ligado em `debug` e `medicao` e **desligado no `release`**. Regras de serialização
+em `app/proguard-rules.pro`; com R8 o app restaurou a sessão e leu a API normalmente.
+
+Mesmo aparelho (moto g53 5G), mesma sessão real de cliente, só leitura, mesmo roteiro nos dois:
+
+| | debug | medicao (R8) |
+|---|---|---|
+| APK | 21,1 MB | 2,3 MB |
+| Partida a frio até o primeiro quadro (`am start -W`, 5 medições) | 1293–1367 ms (mediana 1315) | 243–292 ms (mediana 257) |
+| Troca de abas (72 trocas, ~3,5 mil quadros): quadros lentos | 4,47% | 1,08% |
+| p50 / p90 / p95 / p99 do quadro | 10 / 15 / 22 / 61 ms | 10 / 13 / 14 / 31 ms |
+| Dados prontos depois da partida (`logcat`) | — | termômetro 680 ms, leads 632–646 ms |
+
+Leitura: o ganho é do R8/não-debuggável, não de mudança de código. A partida mede até o primeiro quadro; o conteúdo real
+chega ~0,6 s depois porque depende da rede. Medição de um aparelho só, sem repetição em outros; as medições antigas da
+demonstração (1307–1352 ms) são do debug com dados fictícios e não são comparáveis linha a linha.
 
 ## Dependência do backend: indicadores
 A API central de indicadores está em revisão no backend. O app **não amplia os cálculos locais** a partir de `GET /leads`
@@ -144,7 +163,7 @@ do endpoint; até lá, a Home do cliente continua com o comportamento descrito a
 ## O que ainda falta
 - Validação com contas reais (itens acima) e conferência auditiva com TalkBack.
 - Capturas faltantes da seção 2 e das folhas de avaliação/recebimento com teclado.
-- Medição de desempenho em build release e com dados reais; investigar o p99 de 150 ms na primeira composição de cada aba.
+- Medição em outros aparelhos; o p99 caiu de 61 ms (debug) para 31 ms no build otimizado, sem investigação adicional.
 - Canais de contato em "Ajuda e privacidade": só existem as páginas de termos e privacidade.
 - 12 avisos de lint restantes (ver terceira rodada).
 - Integração dos indicadores com o endpoint do backend, quando o contrato final existir.
