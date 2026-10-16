@@ -21,7 +21,7 @@
 | Termômetro publicado (avaliação, metas, congelados) | **A** | `GET /termometro` (publicado) | Nativo | Validar com mais contas |
 | Indicadores do período (leads, ganhos, conversão, funil, origem) | **A, provisório** | `GET /leads` (o app calcula) e, **novo**, `indicadores` em `GET /termometro` sem avaliação | Cálculo local com teto de 1.000 leads | **Em revisão no backend**: integrar só após contrato final e endpoint; não ampliar o cálculo local |
 | Acessos e cliques do site | **B** | `GET /site/metricas`, no `main` do backend e **404 em produção** (não publicada) | Aviso "Cliques ainda indisponíveis" | Integração por etapas (abaixo): modelos, repositório e seção; só aparece com dados |
-| Leads (lista e detalhe) | **A** | `GET /leads` | Nativo, origem real, "Entrou N×" | Filtro por período e busca (API aceita `desde`) |
+| Leads (lista e detalhe) | **A** | `GET /leads` | Nativo, origem real, "Entrou N×"; filtro por etapa e **por janela de captura** (7/30/90 dias, via `desde`, validado no aparelho com conta real) | Busca por nome (a API não tem) e data final (a API só aceita `desde`) |
 | Entregas (playbook de 30 dias) | **C** | Nenhuma rota; no site vem de server function interna (`cliente.entregas`) | Aba explica e abre `/cliente/entregas` (**Site**) | Pedido ao backend, item 3 |
 | Biblioteca (materiais liberados) | **C** | Nenhuma; o site filtra `visivelCliente` em server function | **Site** (`/cliente`) | Pedido ao backend, item 4 |
 | Mídias e relatórios | **C** | Nenhuma | **Site**, só se a empresa tem o módulo `midias` | Pedido ao backend, item 5 |
@@ -36,10 +36,17 @@
 |---|---|---|---|
 | Termômetro (resultados ao vivo, avaliações, publicar) | **A** | `GET /equipe/termometro`, `POST/PUT …/avaliacoes`, `…/publicar` | Nativo, com `podeEditar`/`podePublicar` |
 | Empresas e ficha | **A** (parcial) | `GET /empresas`, `/termometro`, `/leads` | Lista, ficha e leads; carteira/Cliente 360 completos só no site |
-| Leads e vendas, jornada, notas, recebimentos | **A** | `GET /leads`, `/equipe/jornada*`, `PUT`, `POST …/notas`, `…/recebimentos` | Nativo |
+| Leads e vendas, jornada, notas, recebimentos | **A** | `GET /leads`, `/equipe/jornada*`, `PUT`, `POST …/notas`, `…/recebimentos` | Nativo, com filtro por janela de captura (7/30/90 dias) |
 | Acessos e cliques do site (por empresa) | **B** | `GET /site/metricas` (não publicada) | Aviso; seção após publicação |
 | Atendimento, Agenda, Projetos e entregas, Biblioteca, Métodos, Meu dia, Inbox, A.U.R.A., SNI, Plataformas/Instagram/YouTube | **C** (aparecem como **D**) | Nenhuma | "Na web": abre o site; não é módulo nativo |
 | Gestão, Financeiro, Equipe, Sistemas e automações, API e chaves, Configurações | **C** (aparecem como **D**) | Nenhuma | "Na web" |
+
+## Primeira integração desta etapa
+`GET /site/metricas` é a única rota nova do contrato, mas **não está publicada** (404 em produção), então não dá para
+integrá-la nem validá-la com dados reais agora; fica para quando o backend publicar (pedido 1). A primeira integração foi, então,
+a que o contrato já oferece e ainda não tinha tela: o parâmetro **`desde` de `GET /leads`**, como filtro "Captados: Sempre,
+7 dias, 30 dias, 90 dias" na lista de Leads (cliente e equipe). Conferido no aparelho com a conta de cliente (ForLife, só
+leitura): Sempre = 7 leads, 30 dias = 5 (igual ao Termômetro de 17/09–16/10), 7 dias = 4. Sem `ate` na API, não há data final.
 
 ## Detalhes da rota nova: `GET /api/app/v1/site/metricas`
 Parâmetros `empresaId`, `siteId`, `de`, `ate` (`AAAA-MM-DD`, máx. 366 dias) e `agrupar=dia|total`; sem datas, últimos 30 dias em

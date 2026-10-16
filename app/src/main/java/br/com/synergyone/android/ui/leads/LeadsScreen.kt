@@ -53,6 +53,7 @@ import br.com.synergyone.android.ui.termometro.EmpresaSelector
 import br.com.synergyone.android.ui.theme.synergy
 
 // "captado" não é filtrável na API (lead sem jornada aparece como captado), então não vira chip.
+private val periodosDias = listOf(7, 30, 90)
 private val filtros = listOf("qualificado", "contato", "proposta", "negociacao", "ganho", "perdido")
 
 @Composable
@@ -105,6 +106,19 @@ fun LeadsScreen(
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Captados", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FilterChip(selected = state.dias == null, onClick = { viewModel.selectPeriodo(null) }, colors = br.com.synergyone.android.ui.components.synergyChipColors(), label = { Text("Sempre") })
+                periodosDias.forEach { d ->
+                    FilterChip(selected = state.dias == d, onClick = { viewModel.selectPeriodo(d) }, colors = br.com.synergyone.android.ui.components.synergyChipColors(), label = { Text("$d dias") })
+                }
+            }
+        }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 FilterChip(selected = state.etapa == null, onClick = { viewModel.selectEtapa(null) }, colors = br.com.synergyone.android.ui.components.synergyChipColors(), label = { Text("Todos") })
                 filtros.forEach { etapa ->
@@ -121,8 +135,12 @@ fun LeadsScreen(
             state.leads.isEmpty() -> item {
                 EmptyDashboardState(
                     "Nenhum lead por aqui",
-                    if (state.etapa == null) "Quando um lead for captado, ele aparece nesta lista."
-                    else "Nenhum lead na etapa ${etapaLabel(state.etapa)}.",
+                    when {
+                        state.etapa != null && state.dias != null -> "Nenhum lead na etapa ${etapaLabel(state.etapa)} captado nos últimos ${state.dias} dias."
+                        state.etapa != null -> "Nenhum lead na etapa ${etapaLabel(state.etapa)}."
+                        state.dias != null -> "Nenhum lead foi captado nos últimos ${state.dias} dias."
+                        else -> "Quando um lead for captado, ele aparece nesta lista."
+                    },
                 )
             }
             else -> {

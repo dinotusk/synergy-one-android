@@ -23,10 +23,12 @@ private fun lead(id: Long) = LeadDto(id = id, nome = "Lead $id")
 private class FakeLeads(private val pages: Map<String?, ApiResult<LeadsPage>>) : LeadRepository {
     val calls = mutableListOf<Pair<String?, String?>>() // etapa, cursor
     val empresas = mutableListOf<Long?>()
+    val desdes = mutableListOf<String?>()
     override fun cached(id: Long): LeadDto? = null
     override suspend fun pagina(empresaId: Long?, etapa: String?, cursor: String?, desde: String?, limite: Int): ApiResult<LeadsPage> {
         calls += etapa to cursor
         empresas += empresaId
+        desdes += desde
         return pages[cursor] ?: ApiResult.Error("sem página")
     }
 }
@@ -116,5 +118,37 @@ class LeadsViewModelTest {
         vm.selectEmpresa(null) // "Todas as empresas"
         advanceUntilIdle()
         assertNull(repo.empresas.last())
+    }
+
+    @Test
+    fun `janela de captura manda desde em toda chamada e volta a todo o periodo`() = runVm {
+        val repo = FakeLeads(
+            mapOf(
+                null to ApiResult.Success(LeadsPage(listOf(lead(2)), total = 3, proximoCursor = "c1")),
+                "c1" to ApiResult.Success(LeadsPage(listOf(lead(1)), total = 3, proximoCursor = null)),
+            ),
+        )
+        val vm = LeadsViewModel(repo)
+        advanceUntilIdle()
+        assertNull(repo.desdes.last())
+
+        vm.selectPeriodo(30)
+        advanceUntilIdle()
+        val desde = repo.desdes.last()
+        assertEquals(desdeDe(30), desde)
+        vm.loadMore()
+        advanceUntilIdle()
+        assertEquals(desde, repo.desdes.last()) // "carregar mais" mantém o mesmo corte
+
+        vm.selectPeriodo(null)
+        advanceUntilIdle()
+        assertNull(repo.desdes.last())
+    }
+
+    @Test
+    fun `desde conta a janela incluindo hoje`() {
+        val hoje = java.time.LocalDate.of(2026, 10, 16)
+        assertEquals("2026-10-10", desdeDe(7, hoje))
+        assertEquals("2026-09-17", desdeDe(30, hoje))
     }
 }

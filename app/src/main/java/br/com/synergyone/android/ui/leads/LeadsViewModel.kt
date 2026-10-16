@@ -18,6 +18,10 @@ import kotlinx.coroutines.launch
 data class LeadsUiState(
     val etapa: String? = null,
     val empresaId: Long? = null,
+    /** Janela de captura em dias (7, 30, 90) ou `null` = todo o período. A API só aceita `desde`, sem data final. */
+    val dias: Int? = null,
+    /** `desde` (`AAAA-MM-DD`, Brasília) fixado ao escolher a janela, para reload, atualização e "carregar mais" usarem o mesmo corte. */
+    val desde: String? = null,
     val leads: List<LeadDto> = emptyList(),
     val total: Int = 0,
     val nextCursor: String? = null,
@@ -30,6 +34,10 @@ data class LeadsUiState(
 ) {
     val canLoadMore: Boolean get() = nextCursor != null && !isLoading && !isLoadingMore
 }
+
+/** Primeiro dia de uma janela de [dias] dias que termina hoje (Brasília), como os períodos do Termômetro. */
+internal fun desdeDe(dias: Int, hoje: java.time.LocalDate = br.com.synergyone.android.ui.termometro.hojeBrasilia()): String =
+    hoje.minusDays(dias - 1L).toString()
 
 class LeadsViewModel(
     private val repository: LeadRepository,
@@ -50,6 +58,12 @@ class LeadsViewModel(
         reload()
     }
 
+    fun selectPeriodo(dias: Int?) {
+        if (dias == _state.value.dias) return
+        _state.update { it.copy(dias = dias, desde = dias?.let { d -> desdeDe(d) }) }
+        reload()
+    }
+
     fun selectEtapa(etapa: String?) {
         if (etapa == _state.value.etapa) return
         _state.update { it.copy(etapa = etapa) }
@@ -64,7 +78,7 @@ class LeadsViewModel(
         val empresaId = _state.value.empresaId
         val version = freshness?.version?.value ?: 0L
         job = viewModelScope.launch {
-            when (val r = repository.pagina(empresaId = empresaId, etapa = etapa)) {
+            when (val r = repository.pagina(empresaId = empresaId, etapa = etapa, desde = _state.value.desde)) {
                 is ApiResult.Success -> _state.update {
                     markLoaded(version)
                     it.copy(isLoading = false, leads = r.data.leads, total = r.data.total, nextCursor = r.data.proximoCursor)
@@ -84,7 +98,7 @@ class LeadsViewModel(
         val version = freshness?.version?.value ?: 0L
         job?.cancel()
         job = viewModelScope.launch {
-            when (val r = repository.pagina(empresaId = s.empresaId, etapa = s.etapa)) {
+            when (val r = repository.pagina(empresaId = s.empresaId, etapa = s.etapa, desde = s.desde)) {
                 is ApiResult.Success -> {
                     markLoaded(version)
                     _state.update { it.copy(isRefreshing = false, leads = r.data.leads, total = r.data.total, nextCursor = r.data.proximoCursor, error = null) }
@@ -116,7 +130,7 @@ class LeadsViewModel(
         if (!current.canLoadMore) return
         _state.update { it.copy(isLoadingMore = true, error = null) }
         job = viewModelScope.launch {
-            when (val r = repository.pagina(empresaId = current.empresaId, etapa = current.etapa, cursor = cursor)) {
+            when (val r = repository.pagina(empresaId = current.empresaId, etapa = current.etapa, cursor = cursor, desde = current.desde)) {
                 is ApiResult.Success -> _state.update {
                     // Dedup por id: a API ordena por captura e um lead novo pode deslocar a página.
                     val known = it.leads.mapTo(HashSet()) { l -> l.id }
