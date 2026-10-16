@@ -2,6 +2,8 @@ package br.com.synergyone.android.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -84,6 +86,13 @@ fun SynergyNavGraph(
     fun Authed(content: @Composable (AuthenticatedUser) -> Unit) {
         user?.let { content(it) } ?: BackToLogin(navController)
     }
+    /** Telas fora do HomeScaffold (que já trata as barras do sistema): fundo, cor do texto e recuos. */
+    @Composable
+    fun Standalone(content: @Composable () -> Unit) {
+        androidx.compose.material3.Surface(color = androidx.compose.material3.MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+            androidx.compose.foundation.layout.Box(Modifier.statusBarsPadding().navigationBarsPadding()) { content() }
+        }
+    }
     fun NavBackStackEntry.id(): Long = arguments?.getString(NavRoutes.ARG_ID)?.toLongOrNull() ?: 0L
     val idArg = listOf(navArgument(NavRoutes.ARG_ID) { type = NavType.StringType })
 
@@ -114,13 +123,13 @@ fun SynergyNavGraph(
         composable(NavRoutes.TEAM_HOME) { Authed { TeamHomeScreen(container, it, nav, logout) } }
         composable(NavRoutes.CLIENT_HOME) { Authed { ClientHomeScreen(container, it, nav, logout) } }
 
-        composable(NavRoutes.PERFIL) { Authed { ContaScreen(it, logout, container.themeSettings, onBack = nav::back) } }
+        composable(NavRoutes.PERFIL) { Standalone { Authed { ContaScreen(it, logout, container.themeSettings, onBack = nav::back) } } }
         composable(NavRoutes.BIBLIOTECA) {
-            Authed { BibliotecaScreen(container.bibliotecaRepository, it, onAccount = nav::openPerfil, onSignIn = logout, onBack = nav::back) }
+            Standalone { Authed { BibliotecaScreen(container.bibliotecaRepository, it, onAccount = nav::openPerfil, onSignIn = logout, onBack = nav::back) } }
         }
-        composable(NavRoutes.EMPRESA, idArg) { e -> Authed { EmpresaFichaScreen(e.id(), it, container, nav, logout) } }
+        composable(NavRoutes.EMPRESA, idArg) { e -> Standalone { Authed { EmpresaFichaScreen(e.id(), it, container, nav, logout) } } }
         composable(NavRoutes.EMPRESA_LEADS, idArg) { e ->
-            Authed {
+            Standalone { Authed {
                 LeadsScreen(
                     repository = container.leadRepository,
                     userName = it.displayName,
@@ -132,22 +141,22 @@ fun SynergyNavGraph(
                     onBack = nav::back,
                     onLeadClick = nav::openLead,
                 )
-            }
+            } }
         }
         composable(NavRoutes.EMPRESA_TERMOMETRO, idArg) { e ->
-            Authed {
+            Standalone { Authed {
                 if (it.role == UserRole.TEAM) {
                     TermometroEquipeScreen(container.termometroRepository, it, nav::openPerfil, logout, fixedEmpresaId = e.id(), onBack = nav::back)
                 } else {
                     TermometroClienteScreen(container.termometroRepository, container.indicadoresRepository, it, nav::openPerfil, logout, fixedEmpresaId = e.id(), onBack = nav::back)
                 }
-            }
+            } }
         }
         composable(NavRoutes.LEAD, idArg) { e ->
-            Authed {
+            Standalone { Authed {
                 if (it.role == UserRole.TEAM) LeadDetailScreen(e.id(), it, container, nav, logout)
                 else LeadDetalheClienteScreen(e.id(), it, container.leadRepository, onAccount = nav::openPerfil, onBack = nav::back)
-            }
+            } }
         }
     }
     }

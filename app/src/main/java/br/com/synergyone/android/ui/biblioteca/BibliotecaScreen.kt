@@ -105,8 +105,11 @@ fun BibliotecaScreen(
                 state.itens.isEmpty() -> item {
                     EmptyDashboardState(
                         if (state.area == null) "Nenhum material liberado" else "Nenhum material nesta área",
-                        if (equipe) "Cadastre e libere materiais pelo site; eles aparecem aqui."
-                        else "Quando a equipe liberar materiais para a sua empresa, eles aparecem aqui.",
+                        when {
+                            state.area != null -> "Não há material liberado nesta área. Escolha outra área ou \"Todas\"."
+                            equipe -> "Cadastre e libere materiais pelo site; eles aparecem aqui."
+                            else -> "Quando a equipe liberar materiais para a sua empresa, eles aparecem aqui."
+                        },
                     )
                 }
                 else -> {

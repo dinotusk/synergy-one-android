@@ -157,6 +157,32 @@ Leitura: o ganho é do R8/não-debuggável, não de mudança de código. A parti
 chega ~0,6 s depois porque depende da rede. Medição de um aparelho só, sem repetição em outros; as medições antigas da
 demonstração (1307–1352 ms) são do debug com dados fictícios e não são comparáveis linha a linha.
 
+## Validação com a sessão real do cliente (16/10/2026, backend `bc65361`, migração 035 aplicada) [medido/visto]
+Conta de cliente real (empresa ForLife), build debug, **somente leitura**, aparelho moto g53 5G.
+- `GET /indicadores` → **200**, 5 682 B, 1,5 s na atualização; `GET /termometro` → 200 (531 B, já com o bloco `indicadores` do servidor);
+  `GET /biblioteca` → **200** (387 B com 1 material; 43 B com o filtro de uma área vazia). Resposta 401 sem token **não** foi tratada como validação.
+- Indicadores 17/09–16/10 (servidor, calculados às 13:52 de Brasília): captados **5**, ganhos **0**, conversão **0%** (0 ÷ 5; não é nulo
+  porque há leads), novos 5, vendas fechadas **0**, vendido **R$ 0,00**, recebido **R$ 0,00**, origem "Origem não identificada" 5,
+  leads **+400%** sobre o período anterior (1 lead). Vendido e recebido mostram "sem período anterior para comparar", não 0%.
+- Coerência com outra fonte do próprio backend: a lista `GET /leads` tem 5 leads com captura nesse intervalo e 1 no período anterior
+  (18/08), igual a captados 5 e +400%.
+- Acessos e cliques: o servidor devolveu "Nenhum site configurado para esta empresa" → o app mostra **"ainda sem dados"**, não zero
+  (coleta não configurada ≠ zero ≠ erro).
+- Biblioteca: 1 material ("O Coração Como Estratégia", área Criação, tipo E-book); filtro **Comercial** → vazio legítimo ("Nenhum material
+  nesta área"), **Criação** → 1; o toque abriu o link HTTPS no visualizador do Drive. Paginação **não** exercitada com dado real (só 1
+  material); coberta por teste unitário.
+- **Defeito encontrado e corrigido:** as telas fora das abas (Biblioteca, perfil, ficha, leads da empresa, detalhe do lead) ficavam sob a
+  barra de status e com título em cor escura (ilegível no tema escuro). Agora usam um invólucro com fundo, cor do texto e recuos
+  (`Standalone` em `SynergyNavGraph`). Conferido na Biblioteca; as outras usam o mesmo invólucro, mas não foram reabertas uma a uma.
+- Texto do estado vazio com filtro de área ajustado ("Não há material liberado nesta área…").
+
+**Comparação com o site:** o app e o `GET /leads` concordam, mas a comparação com o **portal web** no mesmo intervalo continua a cargo do
+responsável (não tenho login no site). Valores a conferir lá: captados 5, ganhos 0, conversão 0%, vendas fechadas 0, vendido R$ 0,00,
+recebido R$ 0,00, para 17/09–16/10/2026 (horário de Brasília).
+
+**Pendente:** troca para a conta de equipe, troca de empresa e retorno ao cliente sem restos da sessão anterior; o log da tentativa
+anterior não mostrou rotas `/equipe`. Detalhe do lead de cliente e paginação da Biblioteca com mais de um material.
+
 ## Dependência do backend: indicadores
 A API central de indicadores está em revisão no backend. O app **não amplia os cálculos locais** a partir de `GET /leads`
 (teto de 1.000 registros, funil pela etapa atual). A integração será feita depois do contrato final e da disponibilização
