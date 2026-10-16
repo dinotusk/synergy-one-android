@@ -112,10 +112,26 @@ Tudo abaixo foi no moto g53, build **debug**, com **dados de demonstração** (n
   - 1 `OldTargetApi`: subir o `targetSdk` muda comportamento do sistema; é decisão separada.
   - 3 `ModifierParameter` (`DateField`, `MoneyField`, `ScreenHeader`): só convenção de ordem de parâmetros.
 
-**Não validado nesta rodada** (o aparelho não estava conectado ao adb e não há credenciais de teste no ambiente):
-- Percurso com contas reais de equipe e cliente (login e restauração de sessão, troca de empresa, períodos, atualização
-  manual, falha de rede, logout e entrada com outra conta). Roteiro acima.
-- TalkBack de ouvido, e as capturas faltantes (erro/vazio no escuro 2×; folhas de avaliação/recebimento com teclado).
+**Validado no aparelho (moto g53 5G, conta real de cliente, empresa ForLife, só leitura, build debug):**
+- [visto] Restauração da sessão: o app abriu direto no Termômetro, sem pedir login, e carregou empresas, termômetro e leads.
+- [medido, logcat `SynergyPerf`] `GET /termometro` devolveu 200 com 65 B (`atual: null`) para a empresa sem avaliação: o app
+  mostra "Ainda sem avaliação publicada" e os indicadores dos leads, não erro.
+- [medido] Primeira carga: `/empresas` 628 ms, `/termometro` 692 ms, `/leads` 570–575 ms; telas prontas entre 620 e 770 ms.
+- [medido] Puxar para atualizar: 802–952 ms por tela, com os dados antigos na tela durante a atualização.
+- [visto] Ir de Termômetro a Leads e voltar: a aba volta igual e não faz nova requisição (cache dentro dos 5 min).
+- [visto] Sem rede (Wi-Fi e dados desligados, religados no fim): puxar para atualizar mantém os números e mostra
+  "Não foi possível atualizar. Mostrando o que já estava carregado." com "Tentar"; as 3 cargas falharam em 49–101 ms.
+- [visto] Coerência interna: a lista tem 7 leads; no período 17/09–16/10 o Termômetro mostra 5 captados, e a lista tem
+  exatamente 5 com data nesse intervalo (os outros 2 são de agosto ou anteriores). **Comparar com o site continua a cargo do
+  responsável** (mesmo período, fuso America/Sao_Paulo).
+- [visto, demonstração] Capturas novas: erro e "sem avaliação" no escuro com fonte 2× (`docs/capturas/erro-escuro-2x.png`,
+  `sem-avaliacao-escuro-2x.png`) e folha "Nova avaliação" com o teclado aberto (`avaliacao-teclado-escuro.png`): o campo
+  focado, "Nota interna", fica visível acima do teclado. Com 2× os rótulos da barra inferior somem e ficam só os ícones.
+
+**Não validado nesta rodada:**
+- Conta de **equipe** real, troca de empresa (a conta de cliente testada só tem uma), troca de período em dados reais,
+  logout e entrada com outra conta sem restos da anterior: precisam das credenciais do responsável.
+- TalkBack de ouvido; folha de recebimento com teclado (precisa de um lead ganho de teste).
 - Desempenho em build otimizado. O `release` atual tem `isMinifyEnabled = false` e não tem assinatura configurada, então não
   é um build otimizado de verdade; a demonstração só existe no debug. Ligar R8 mexe na configuração de build e precisa ser
   testado no aparelho (regras de serialização), então não foi alterado. Medir no release exige entrar com conta real.
