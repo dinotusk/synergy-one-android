@@ -132,7 +132,9 @@ Tudo abaixo foi no moto g53, build **debug**, com **dados de demonstração** (n
 - Conta de **equipe** real, troca de empresa (a conta de cliente testada só tem uma), troca de período em dados reais,
   logout e entrada com outra conta sem restos da anterior: precisam das credenciais do responsável.
 - TalkBack de ouvido; folha de recebimento com teclado (precisa de um lead ganho de teste).
-- Troca de empresa (a conta de cliente testada só tem uma), troca de período com dados de equipe e logout entre contas (ver roteiro abaixo).
+- Conta de **equipe**, troca de empresa e de período com dados de equipe: o responsável executou o roteiro e **informou que está tudo certo** [declarado, sem evidência minha]. O `logcat` gravado nesse intervalo só tem rotas de cliente (`/me`, `/empresas`, `/termometro`, `/leads`) e nenhuma `/equipe/*`, então não confirma que a conta de equipe foi usada; repetir com o log aberto se for preciso evidência.
+- Logout [medido]: depois de sair, o armazenamento do app ficou só com o tema (`Dark`) e a sessão vazia, sem token nem dados da conta anterior.
+- Comparação dos números com o site no mesmo período: a cargo do responsável, ainda sem resultado registrado.
 
 ## Desempenho: debug × build otimizado [medido]
 Perfil `medicao` (`./gradlew assembleMedicao`): R8 + redução de recursos, `isDebuggable = false`, assinado com a **chave de
