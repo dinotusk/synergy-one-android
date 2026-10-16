@@ -33,6 +33,7 @@ import br.com.synergyone.android.ui.conta.ContaScreen
 import br.com.synergyone.android.ui.empresas.EmpresaFichaScreen
 import br.com.synergyone.android.ui.common.LocalDataFreshness
 import br.com.synergyone.android.ui.leads.LeadDetailScreen
+import br.com.synergyone.android.ui.leads.LeadDetalheClienteScreen
 import br.com.synergyone.android.ui.leads.LeadsScreen
 import br.com.synergyone.android.ui.login.LoginRoute
 import br.com.synergyone.android.ui.login.LoginViewModel
@@ -124,7 +125,7 @@ fun SynergyNavGraph(
                     fixedEmpresaId = e.id(),
                     title = "Leads",
                     onBack = nav::back,
-                    onLeadClick = if (it.role == UserRole.TEAM) nav::openLead else null,
+                    onLeadClick = nav::openLead,
                 )
             }
         }
@@ -137,7 +138,12 @@ fun SynergyNavGraph(
                 }
             }
         }
-        composable(NavRoutes.LEAD, idArg) { e -> Authed { LeadDetailScreen(e.id(), it, container, nav, logout) } }
+        composable(NavRoutes.LEAD, idArg) { e ->
+            Authed {
+                if (it.role == UserRole.TEAM) LeadDetailScreen(e.id(), it, container, nav, logout)
+                else LeadDetalheClienteScreen(e.id(), it, container.leadRepository, onAccount = nav::openPerfil, onBack = nav::back)
+            }
+        }
     }
     }
 }

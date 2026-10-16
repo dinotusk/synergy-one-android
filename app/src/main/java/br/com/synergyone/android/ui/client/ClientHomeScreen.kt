@@ -59,6 +59,7 @@ fun ClientHomeScreen(container: AppContainer, user: AuthenticatedUser, nav: AppN
                 empresas = user.empresas.map { EmpresaOption(it.id, it.nome) },
                 onAccount = nav::openPerfil,
                 onSignIn = onLogout,
+                onLeadClick = nav::openLead,
             )
             tab == 2 -> ModuleHubScreen(
                 title = "Entregas",

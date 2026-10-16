@@ -176,7 +176,7 @@ fun LeadDetailScreen(
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-private fun LeadCabecalho(lead: LeadDto) {
+internal fun LeadCabecalho(lead: LeadDto) {
     val context = LocalContext.current
     SynergyCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -204,7 +204,7 @@ private fun LeadCabecalho(lead: LeadDto) {
 }
 
 @Composable
-private fun Linha(rotulo: String, valor: String?) {
+internal fun Linha(rotulo: String, valor: String?) {
     if (valor.isNullOrBlank()) return
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.Top) {
         Text(rotulo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
