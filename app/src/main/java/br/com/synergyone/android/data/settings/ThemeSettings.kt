@@ -1,5 +1,6 @@
 package br.com.synergyone.android.data.settings
 
+import androidx.core.content.edit
 import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,7 @@ class ThemeSettings(context: Context) {
     val mode: StateFlow<ThemeMode> = _mode.asStateFlow()
 
     fun set(mode: ThemeMode) {
-        prefs.edit().putString(KEY, mode.name).apply()
+        prefs.edit { putString(KEY, mode.name) }
         _mode.value = mode
     }
 

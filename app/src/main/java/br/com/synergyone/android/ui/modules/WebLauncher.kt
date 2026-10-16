@@ -1,8 +1,8 @@
 package br.com.synergyone.android.ui.modules
 
+import androidx.core.net.toUri
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import br.com.synergyone.android.BuildConfig
 
@@ -14,7 +14,7 @@ object WebLauncher {
     fun url(path: String): String = BuildConfig.API_BASE_URL.trimEnd('/') + "/" + path.trimStart('/')
 
     fun open(context: Context, path: String) {
-        val uri = Uri.parse(url(path))
+        val uri = url(path).toUri()
         try {
             CustomTabsIntent.Builder().setShowTitle(true).build().launchUrl(context, uri)
         } catch (_: Exception) {

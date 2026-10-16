@@ -1,6 +1,6 @@
 package br.com.synergyone.android.ui.conta
 
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -126,7 +126,7 @@ fun ContaScreen(user: AuthenticatedUser, onLogout: () -> Unit, themeSettings: Th
             SettingsDivider()
             SettingsRow("Versão", value = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
             SettingsDivider()
-            SettingsRow("Serviço", value = Uri.parse(BuildConfig.API_BASE_URL).host.orEmpty())
+            SettingsRow("Serviço", value = BuildConfig.API_BASE_URL.toUri().host.orEmpty())
         }
     }
 

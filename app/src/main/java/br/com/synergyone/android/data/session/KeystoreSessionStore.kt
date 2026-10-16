@@ -1,5 +1,6 @@
 package br.com.synergyone.android.data.session
 
+import androidx.core.content.edit
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -49,12 +50,12 @@ class KeystoreSessionStore(context: Context) : SessionStore {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, secretKey())
         val encrypted = cipher.iv + cipher.doFinal(json.toString().toByteArray(Charsets.UTF_8))
-        prefs.edit().putString(KEY_BLOB, Base64.encodeToString(encrypted, Base64.NO_WRAP)).apply()
+        prefs.edit { putString(KEY_BLOB, Base64.encodeToString(encrypted, Base64.NO_WRAP)) }
     }
 
     @Synchronized
     override fun clear() {
-        prefs.edit().clear().apply()
+        prefs.edit { clear() }
     }
 
     private fun secretKey(): SecretKey {
