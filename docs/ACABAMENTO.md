@@ -183,6 +183,12 @@ recebido R$ 0,00, para 17/09–16/10/2026 (horário de Brasília).
 **Pendente:** troca para a conta de equipe, troca de empresa e retorno ao cliente sem restos da sessão anterior; o log da tentativa
 anterior não mostrou rotas `/equipe`. Detalhe do lead de cliente e paginação da Biblioteca com mais de um material.
 
+## Decisões do responsável (19/10/2026)
+- Identificador do app: **`br.com.synergyone.android`** (o atual; não muda).
+- Testes de aceite feitos pelo responsável no aparelho, que informou estar tudo certo [declarado].
+- PR #1 integrado à `main` no GitHub. **Publicação na loja: não feita**; depende de decisão com a chefia e de chave de assinatura de
+  publicação, que não existe no projeto. O perfil `medicao` (chave de debug) nunca deve ser publicado.
+
 ## Dependência do backend: indicadores
 A API central de indicadores está em revisão no backend. O app **não amplia os cálculos locais** a partir de `GET /leads`
 (teto de 1.000 registros, funil pela etapa atual). A integração será feita depois do contrato final e da disponibilização
