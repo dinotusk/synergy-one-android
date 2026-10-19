@@ -1,0 +1,104 @@
+{
+  "versaoDefinicoes": "2026-10-a",
+  "empresa": {
+    "id": 4,
+    "nome": "Empresa Exemplo"
+  },
+  "fuso": "America/Sao_Paulo",
+  "calculadoEm": "2026-10-15T15:00:00.000Z",
+  "periodo": {
+    "de": "2026-09-16",
+    "ate": "2026-10-15",
+    "dias": 30
+  },
+  "atual": {
+    "periodo": {
+      "de": "2026-09-16",
+      "ate": "2026-10-15",
+      "dias": 30
+    },
+    "agrupamento": "semana",
+    "captados": 0,
+    "porEtapa": {
+      "novo": 0,
+      "contatado": 0,
+      "negociacao": 0,
+      "fechou": 0,
+      "perdeu": 0
+    },
+    "funil": [
+      {
+        "etapa": "captado",
+        "rotulo": "Captado",
+        "total": 0
+      },
+      {
+        "etapa": "qualificado",
+        "rotulo": "Qualificado",
+        "total": 0
+      },
+      {
+        "etapa": "contato",
+        "rotulo": "Em contato",
+        "total": 0
+      },
+      {
+        "etapa": "proposta",
+        "rotulo": "Proposta",
+        "total": 0
+      },
+      {
+        "etapa": "negociacao",
+        "rotulo": "Negociação",
+        "total": 0
+      },
+      {
+        "etapa": "ganho",
+        "rotulo": "Venda ganha",
+        "total": 0
+      }
+    ],
+    "ganhos": 0,
+    "perdidos": 0,
+    "emAndamento": 0,
+    "conversao": null,
+    "diasAteVenda": null,
+    "receitaCoorteCentavos": 0,
+    "vendasNoPeriodo": 0,
+    "vendidoCentavos": 0,
+    "recebidoCentavos": 0,
+    "evolucao": [
+      {
+        "chave": "2026-09-16",
+        "rotulo": "16/09",
+        "captados": 0,
+        "ganhos": 0,
+        "vendidoCentavos": 0,
+        "recebidoCentavos": 0
+      }
+    ],
+    "porOrigem": [],
+    "semCampanha": 0,
+    "canais": []
+  },
+  "anterior": null,
+  "comparacao": null,
+  "metas": [],
+  "site": null,
+  "definicoes": {
+    "dia": "Todos os dias são do horário de Brasília (America/Sao_Paulo).",
+    "captado": "Lead captado no período: a data de ENTRADA do lead (primeira captura) cai no período. Testes e repetições (mesma pessoa, mesma empresa) não entram.",
+    "coorte": "Coorte do período: os leads captados no período, vistos como estão hoje. Captados, etapas, funil, ganhos, perdidos, em andamento, conversão, dias até a venda e receita da coorte falam só desses leads.",
+    "fechamento": "Fechamento (ganho): o lead está na etapa 'fechou' (jornada: 'ganho'). A data do fechamento é a data de venda registrada na jornada; leads antigos sem essa data contam como ganho na coorte, mas não entram nas vendas do período.",
+    "conversao": "Conversão: ganhos da coorte ÷ leads captados da coorte. Sem leads, não há conversão (nulo), nunca 0%.",
+    "receitaCoorte": "Receita da coorte: soma do valor de venda dos ganhos da coorte, mesmo que o fechamento tenha acontecido depois do período.",
+    "vendidoNoPeriodo": "Vendido no período: soma do valor das vendas FECHADAS dentro do período (pela data do fechamento), de qualquer lead, inclusive captado antes.",
+    "recebido": "Recebido: soma dos pagamentos registrados com data dentro do período (pela data de cada recebimento), de qualquer lead da empresa.",
+    "emAndamento": "Em andamento: captados que ainda não foram ganhos nem perdidos (novo, contatado ou em negociação). 'Em trabalho' é só contatado ou em negociação (sem os novos).",
+    "funil": "Funil: quantos leads da coorte chegaram a cada etapa da jornada (pela etapa mais avançada que já alcançaram; um lead perdido continua contado nas etapas por onde passou).",
+    "periodoAnterior": "Período anterior: o mesmo número de dias imediatamente antes (ou o mês anterior, até o mesmo dia, em 'este mês'). Variação só existe quando o período anterior tem base (> 0).",
+    "origem": "Origem do lead: a que o site registrou na primeira captura. Sem registro, 'Origem não identificada'; nenhuma origem é atribuída depois.",
+    "sessoes": "Sessões do site: visitas por dia no navegador. Não são pessoas únicas.",
+    "atualizacao": "Os números são calculados na hora, sobre os dados do Synergy One; a data do cálculo vem em calculadoEm."
+  }
+}

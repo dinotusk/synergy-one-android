@@ -1,0 +1,28 @@
+{
+  "itens": [
+    {
+      "id": 12,
+      "empresaId": 4,
+      "titulo": "Guia da marca",
+      "descricao": "Manual de uso da marca (PDF).",
+      "area": "Marca",
+      "tipo": "PDF",
+      "url": "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view",
+      "capaUrl": "https://drive.google.com/thumbnail?id=1AbCdEfGhIjKlMnOp&sz=w480",
+      "atualizadoEm": "2026-10-14T15:00:00.000Z"
+    },
+    {
+      "id": 9,
+      "empresaId": 4,
+      "titulo": "Calendário de conteúdo de outubro",
+      "descricao": null,
+      "area": "Criação",
+      "tipo": "Planilha",
+      "url": "https://docs.example.com/calendario-outubro",
+      "capaUrl": null,
+      "atualizadoEm": "2026-10-02T12:00:00.000Z"
+    }
+  ],
+  "total": 2,
+  "proximoCursor": null
+}

@@ -1,7 +1,16 @@
 <resources>
-    <!-- Tema base aplicado antes do Compose assumir a UI (splash/background da janela). -->
-    <style name="Theme.SynergyOne" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/synergy_background_light</item>
-        <item name="android:statusBarColor">@color/synergy_primary</item>
+    <!-- Tema base antes do Compose assumir a UI. O padrão do produto é escuro. -->
+    <style name="Theme.SynergyOne" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/synergy_background_dark</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- Splash nativo (Android 12+ e compat até a API 23): marca sobre azul-noite. -->
+    <style name="Theme.SynergyOne.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/synergy_background_dark</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/synergy_splash_icon_bg</item>
+        <item name="postSplashScreenTheme">@style/Theme.SynergyOne</item>
     </style>
 </resources>
