@@ -33,12 +33,27 @@ android {
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${config("supabase.anonKey", "SUPABASE_ANON_KEY")}\"")
     }
 
+    // Assinatura de publicação: lida de local.properties (não versionado) ou do ambiente. Sem ela, o release sai sem assinar.
+    val releaseStoreFile = config("release.storeFile", "RELEASE_STORE_FILE")
+    signingConfigs {
+        if (releaseStoreFile.isNotBlank()) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = config("release.storePassword", "RELEASE_STORE_PASSWORD")
+                keyAlias = config("release.keyAlias", "RELEASE_KEY_ALIAS")
+                keyPassword = config("release.keyPassword", "RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             buildConfigField("boolean", "PERF_LOG", "true")
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             buildConfigField("boolean", "PERF_LOG", "false")
         }
