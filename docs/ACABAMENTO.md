@@ -186,8 +186,15 @@ anterior não mostrou rotas `/equipe`. Detalhe do lead de cliente e paginação 
 ## Decisões do responsável (19/10/2026)
 - Identificador do app: **`br.com.synergyone.android`** (o atual; não muda).
 - Testes de aceite feitos pelo responsável no aparelho, que informou estar tudo certo [declarado].
-- PR #1 integrado à `main` no GitHub. **Publicação na loja: não feita**; depende de decisão com a chefia e de chave de assinatura de
-  publicação, que não existe no projeto. O perfil `medicao` (chave de debug) nunca deve ser publicado.
+- PR #1 integrado à `main` no GitHub. O perfil `medicao` (chave de debug) nunca deve ser publicado.
+
+## Publicação na Play Store (11/11/2026)
+- Decisão com a chefia: **aprovada** [declarado pelo responsável].
+- Chave de upload criada em 27/10/2026, fora do repositório; caminho e senhas só em `local.properties` (`release.storeFile`,
+  `release.storePassword`, `release.keyAlias`, `release.keyPassword`) ou nas variáveis `RELEASE_*`. **Guardar cópia de segurança
+  da chave e das senhas**: sem elas não há como enviar atualizações (salvo redefinição pelo suporte do Google com o Play App Signing).
+- Release com R8 e redução de recursos; gerar com `./gradlew bundleRelease` → `app/build/outputs/bundle/release/app-release.aab`.
+- Cada envio à loja exige `versionCode` maior que o anterior (`app/build.gradle.kts`).
 
 ## Dependência do backend: indicadores
 A API central de indicadores está em revisão no backend. O app **não amplia os cálculos locais** a partir de `GET /leads`
